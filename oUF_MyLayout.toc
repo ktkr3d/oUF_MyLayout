@@ -1,0 +1,7 @@
+## Interface: 110207
+## Title: oUF MyLayout
+## Author: YourName
+## Version: 1.0
+
+libs\oUF\oUF.xml
+oUF_MyLayout.lua
