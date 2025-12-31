@@ -1,7 +1,12 @@
 ## Interface: 110207
 ## Title: oUF MyLayout
-## Author: YourName
-## Version: 1.0
+## Author: ktkr3d
+## Version: 0.1
+## X-oUF: oUF_MyLayout
+## RequiredDeps: Ace3, LibSharedMedia-3.0, oUF
 
-libs\oUF\oUF.xml
+## SavedVariables: oUF_MyLayoutDB
+
+Config.lua
+Options.lua
 oUF_MyLayout.lua

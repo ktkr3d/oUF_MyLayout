@@ -2,24 +2,20 @@
 
 ## Introduction
 
-oUF_MyLayoutはoUFフレームワークを利用したユニットフレームアドオンです。
+oUF_MyLayout is a unit frame addon.
 
-## Install
+## Prerequisite Addons
 
-```ps1
-git clone https://github.com/ktkr3d/oUF_MyLayout.git
-Copy-Item -Path "oUF_MyLayout" -Destination "C:\Program Files (x86)\World of Warcraft\_retail_\Interface\AddOns\oUF_MyLayout" -Recurse -Force
+- [Ace3](https://www.curseforge.com/wow/addons/ace3)
+- [LibSharedMedia-3-0](https://www.curseforge.com/wow/addons/libsharedmedia-3-0)
+- [oUF](https://www.curseforge.com/wow/addons/ouf)
 
+## Download Addon
+
+- [oUF_MyLayout](https://github.com/ktkr3d/oUF_MyLayout)
+
+## Slash Commands
+
+```text
+/mylayout config
 ```
-
-## Issues
-
-- マナ/パワーバーのクラスカラーが微妙に明るいような気がする。
-- マナ/パワーバーのクラスカラーが黒い場合がある。(Warrior, DemonHunter, Druid:Normal/Moonkin)
-- ヘルスバーの増減が反映されない場合がある。
-
-## ToDo
-
-- 設定値とコードの分離
-- 設定画面
-- ユニットフレームの追加

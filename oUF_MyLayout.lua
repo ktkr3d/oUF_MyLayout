@@ -1,4 +1,5 @@
 local addonName, ns = ...
+
 -- oUFオブジェクトを取得（グローバルまたはネームスペースから）
 local oUF = ns.oUF or oUF
 
@@ -11,6 +12,372 @@ end
 oUF.Tags.Events["my:afk"] = "PLAYER_FLAGS_CHANGED UNIT_FLAGS"
 
 -- ------------------------------------------------------------------------
+-- SharedMediaのサポート
+-- ------------------------------------------------------------------------
+local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+local InternalMedia = {
+    ["oUF_MyLayout Gradient"] = "Interface\\Addons\\oUF_MyLayout\\media\\textures\\Gradient.tga",
+    ["oUF_MyLayout Minimalist"] = "Interface\\Addons\\oUF_MyLayout\\media\\textures\\Minimalist.tga",
+    ["oUF_MyLayout Prototype"] = "Interface\\Addons\\oUF_MyLayout\\media\\fonts\\Prototype.ttf",
+}
+
+if LSM then
+    for name, path in pairs(InternalMedia) do
+        local mediaType = path:match("%.ttf$") and "font" or "statusbar"
+        LSM:Register(mediaType, name, path)
+    end
+end
+
+local function GetMedia(mediaType, key)
+    if LSM then
+        return LSM:Fetch(mediaType, key) or InternalMedia[key] or key
+    end
+    return InternalMedia[key] or key
+end
+
+-- ------------------------------------------------------------------------
+-- フィルタ関数
+-- ------------------------------------------------------------------------
+local function CustomFilter(element, unit, button, name, icon, count, debuffType, duration, expirationTime, source, ...)
+    if element.onlyShowPlayer then
+        return source == "player" or source == "vehicle" or source == "pet"
+    end
+    return true
+end
+
+-- ------------------------------------------------------------------------
+-- フレーム更新関数 (Live Update)
+-- ------------------------------------------------------------------------
+local function UpdateUnitFrame(self, isInit)
+    local unit = self.unit
+    local C = ns.Config
+    
+    local uConfig = C.Units.Default
+    if unit == "pet" then uConfig = C.Units.Pet
+    elseif self:GetName() and self:GetName():match("oUF_MyLayoutMainTank") then uConfig = C.Units.MainTank
+    elseif unit and unit:match("raid") then uConfig = C.Units.Raid
+    elseif unit and unit:match("party") then uConfig = C.Units.Party
+    elseif unit and unit:match("boss") then uConfig = C.Units.Boss
+    elseif unit == "player" then uConfig = C.Units.Player
+    elseif unit == "target" then uConfig = C.Units.Target
+    end
+
+    local fontMain = GetMedia("font", C.Media.Font)
+
+    self:SetSize(uConfig.Width, uConfig.Height)
+
+    if self.Health then
+        self.Health:SetHeight(uConfig.HealthHeight)
+        local textureBar = GetMedia("statusbar", uConfig.HealthBarTexture or C.Media.HealthBar)
+        self.Health:SetStatusBarTexture(textureBar)
+        self.Health:SetStatusBarColor(unpack(C.Colors.Health))
+        if self.Health.bg then self.Health.bg:SetColorTexture(unpack(C.Colors.HealthBg)) end
+    end
+
+    if self.Power then
+        self.Power:SetHeight(uConfig.PowerHeight or 10)
+        local texturePower = GetMedia("statusbar", uConfig.PowerBarTexture or C.Media.PowerBar)
+        self.Power:SetStatusBarTexture(texturePower)
+        if self.Power.bg then self.Power.bg:SetColorTexture(unpack(C.Colors.PowerBg)) end
+    end
+
+    if self.Name then
+        local nConfig = uConfig.NameText or {}
+        local nFont = GetMedia("font", nConfig.Font or C.Media.Font)
+        local nSize = nConfig.Size or 20
+        local nOutline = nConfig.Outline or "OUTLINE"
+        self.Name:SetFont(nFont, nSize, nOutline)
+
+        -- NameTag update
+        if uConfig.NameTag then
+            self:Tag(self.Name, uConfig.NameTag)
+            self.Name:UpdateTag()
+        end
+    end
+
+    if self.Level then
+        -- Level text uses NameText settings for now or default
+        local nConfig = uConfig.NameText or {}
+        local nFont = GetMedia("font", nConfig.Font or C.Media.Font)
+        self.Level:SetFont(nFont, 20, "OUTLINE")
+    end
+
+    if self.HpVal then
+        local hConfig = uConfig.HealthText or {}
+        local hFont = GetMedia("font", hConfig.Font or C.Media.Font)
+        local hSize = hConfig.Size or 24
+        local hOutline = hConfig.Outline or "OUTLINE"
+        self.HpVal:SetFont(hFont, hSize, hOutline)
+
+        -- タグの更新
+        local tag = uConfig.HealthTag or "[perhp]%"
+        if unit == "player" then
+            tag = tag .. " [dead][offline][my:afk]"
+        end
+        self:Tag(self.HpVal, tag)
+        self.HpVal:UpdateTag() -- 即座に反映
+    end
+
+    if self.CastbarRaw then
+        local cbConfig = uConfig.Castbar or {}
+        if cbConfig.Enable then
+            self.Castbar = self.CastbarRaw
+            self.Castbar:Show()
+            if not isInit then
+                if not self:IsElementEnabled("Castbar") then
+                    self:EnableElement("Castbar")
+                end
+            end
+        else
+            if not isInit and self:IsElementEnabled("Castbar") then
+                self:DisableElement("Castbar")
+            end
+            self.Castbar = nil
+            self.CastbarRaw:Hide()
+        end
+
+        if self.Castbar then
+            local textureBar = GetMedia("statusbar", uConfig.HealthBarTexture or C.Media.HealthBar)
+            self.Castbar:SetStatusBarTexture(textureBar)
+            self.Castbar:SetStatusBarColor(unpack(C.Colors.Castbar))
+            if self.Castbar.bg then self.Castbar.bg:SetColorTexture(unpack(C.Colors.CastbarBg)) end
+            
+            local cbtConfig = uConfig.CastbarText or {}
+            local cbFont = GetMedia("font", cbtConfig.Font or C.Media.Font)
+            local cbSize = cbtConfig.Size or 12
+            local cbOutline = cbtConfig.Outline or "OUTLINE"
+            if self.Castbar.Text then self.Castbar.Text:SetFont(cbFont, cbSize, cbOutline) end
+            if self.Castbar.Time then self.Castbar.Time:SetFont(cbFont, cbSize, cbOutline) end
+        end
+    end
+
+    if self.PortraitModel then
+        local pConfig = uConfig.Portrait or {}
+        -- 互換性のため、もしbooleanならテーブルに変換
+        if type(pConfig) ~= "table" then
+            pConfig = { Enable = pConfig }
+        end
+
+        if pConfig.Enable then
+            self.Portrait = self.PortraitModel
+            self.Portrait:Show()
+            if self.PortraitBg then self.PortraitBg:Show() end
+            
+            self.Portrait:SetSize(pConfig.Width or 150, pConfig.Height or 43)
+            self.Portrait:ClearAllPoints()
+            self.Portrait:SetPoint("LEFT", self, "LEFT", pConfig.X or 2, pConfig.Y or 0)
+
+            if not isInit then
+                if not self:IsElementEnabled("Portrait") then
+                    self:EnableElement("Portrait")
+                end
+                self.Portrait:ForceUpdate()
+            end
+        else
+            if not isInit and self:IsElementEnabled("Portrait") then
+                self:DisableElement("Portrait")
+            end
+            self.Portrait = nil -- oUFの自動検出対象から外す
+            self.PortraitModel:Hide()
+            if self.PortraitBg then self.PortraitBg:Hide() end
+        end
+    end
+
+    if self.Buffs then
+        local bConfig = uConfig.Buffs or {}
+        if bConfig.Enable then
+            self.Buffs:Show()
+            self.Buffs.size = bConfig.Size or 20
+            self.Buffs.spacing = 4
+            self.Buffs:SetWidth(uConfig.Width)
+            self.Buffs:SetHeight((bConfig.Size or 20) * 2)
+            self.Buffs:ClearAllPoints()
+            self.Buffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", bConfig.X or 0, bConfig.Y or 5)
+            self.Buffs.onlyShowPlayer = bConfig.PlayerOnly
+            if self.Buffs.ForceUpdate then
+                self.Buffs:ForceUpdate()
+            end
+        else
+            self.Buffs:Hide()
+        end
+    end
+
+    if self.Debuffs then
+        local dConfig = uConfig.Debuffs or {}
+        if dConfig.Enable then
+            self.Debuffs:Show()
+            self.Debuffs.size = dConfig.Size or 20
+            self.Debuffs.spacing = 4
+            self.Debuffs:SetWidth(uConfig.Width)
+            self.Debuffs:SetHeight((dConfig.Size or 20) * 2)
+            self.Debuffs:ClearAllPoints()
+            self.Debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", dConfig.X or 0, dConfig.Y or 35)
+            self.Debuffs.onlyShowPlayer = dConfig.PlayerOnly
+            if self.Debuffs.ForceUpdate then
+                self.Debuffs:ForceUpdate()
+            end
+        else
+            self.Debuffs:Hide()
+        end
+    end
+end
+
+function ns.UpdateFrames()
+    local C = ns.Config
+    if not InCombatLockdown() then
+        -- Player
+        if ns.player then
+            if C.Units.Player.Enable then
+                ns.player:Show()
+                ns.player:ClearAllPoints()
+                ns.player:SetPoint(unpack(C.Units.Player.Position))
+            else
+                ns.player:Hide()
+            end
+        end
+        -- Target
+        if ns.target then
+            if C.Units.Target.Enable then
+                ns.target:Show()
+                ns.target:ClearAllPoints()
+                ns.target:SetPoint(unpack(C.Units.Target.Position))
+            else
+                ns.target:Hide()
+            end
+        end
+        -- Pet
+        if ns.pet then
+            if C.Units.Pet.Enable then
+                ns.pet:Show()
+                ns.pet:ClearAllPoints()
+                ns.pet:SetPoint(unpack(C.Units.Pet.Position))
+            else
+                ns.pet:Hide()
+            end
+        end
+        -- Party
+        if ns.party then
+            if C.Units.Party.Enable then
+                ns.party:Show()
+                ns.party:ClearAllPoints()
+                ns.party:SetPoint(unpack(C.Units.Party.Position))
+            else
+                ns.party:Hide()
+            end
+        end
+        -- Raid
+        if ns.raid then
+            if C.Units.Raid.Enable then
+                ns.raid:Show()
+                ns.raid:ClearAllPoints()
+                ns.raid:SetPoint(unpack(C.Units.Raid.Position))
+            else
+                ns.raid:Hide()
+            end
+        end
+        -- Boss
+        if ns.boss then
+            if C.Units.Boss.Enable then
+                local prevBoss
+                for i=1, 5 do
+                    if ns.boss[i] then
+                        ns.boss[i]:Show()
+                        ns.boss[i]:ClearAllPoints()
+                        if i == 1 then
+                            ns.boss[i]:SetPoint(unpack(C.Units.Boss.Position))
+                        else
+                            ns.boss[i]:SetPoint("TOP", prevBoss, "BOTTOM", 0, -60)
+                        end
+                        prevBoss = ns.boss[i]
+                    end
+                end
+            else
+                for i=1, 5 do
+                    if ns.boss[i] then ns.boss[i]:Hide() end
+                end
+            end
+        end
+        -- MainTank
+        if ns.maintank then
+            if C.Units.MainTank.Enable then
+                ns.maintank:Show()
+                ns.maintank:ClearAllPoints()
+                ns.maintank:SetPoint(unpack(C.Units.MainTank.Position))
+            else
+                ns.maintank:Hide()
+            end
+        end
+    end
+    for _, obj in pairs(oUF.objects) do
+        if obj.style == "MyLayout" then
+            UpdateUnitFrame(obj)
+        end
+    end
+end
+
+-- ------------------------------------------------------------------------
+-- 設定の初期化 (SavedVariables)
+-- ------------------------------------------------------------------------
+function ns:OnProfileChanged(event, database, newProfileKey)
+    -- プロファイルが変更されたら、ns.Configの参照先を更新
+    ns.Config = database.profile
+    -- フレームの見た目を更新
+    ns.UpdateFrames()
+end
+
+local Loader = CreateFrame("Frame")
+Loader:RegisterEvent("ADDON_LOADED")
+Loader:SetScript("OnEvent", function(self, event, addon)
+    if addon ~= addonName then return end
+
+    -- TOCからバージョン情報を取得
+    ns.Version = C_AddOns.GetAddOnMetadata(addonName, "Version")
+
+    -- 依存ライブラリのチェック
+    if not C_AddOns.IsAddOnLoaded("Ace3") or not C_AddOns.IsAddOnLoaded("LibSharedMedia-3.0") or not C_AddOns.IsAddOnLoaded("oUF") then
+        print("|cff00ff00oUF_MyLayout:|r |cffff0000Error:|r Required libraries (Ace3, LibSharedMedia-3.0, oUF) are missing or not enabled.")
+        return
+    end
+
+    -- AceDBの初期化
+    -- Config.luaで定義した ns.Config をデフォルト値として使用
+    local defaults = {
+        profile = ns.Config
+    }
+    ns.db = LibStub("AceDB-3.0"):New("oUF_MyLayoutDB", defaults, true)
+
+    -- プロファイル変更時のコールバック登録
+    ns.db.RegisterCallback(ns, "OnProfileChanged", "OnProfileChanged")
+    ns.db.RegisterCallback(ns, "OnProfileCopied", "OnProfileChanged")
+    ns.db.RegisterCallback(ns, "OnProfileReset", "OnProfileChanged")
+
+    -- 現在のプロファイルを ns.Config にセット
+    ns.Config = ns.db.profile
+
+    -- 保存された設定を適用するためにフレームを更新
+    ns.UpdateFrames()
+    
+    -- 設定画面の初期化
+    if ns.SetupOptions then ns.SetupOptions() end
+
+    self:UnregisterEvent("ADDON_LOADED")
+end)
+
+-- スラッシュコマンド (/mylayout reset)
+SLASH_OUF_MYLAYOUT1 = "/mylayout"
+SlashCmdList["OUF_MYLAYOUT"] = function(msg)
+    if msg == "reset" then
+        ns.db:ResetProfile()
+        print("|cff00ff00oUF_MyLayout:|r 現在のプロファイル設定をリセットしました。")
+    elseif msg == "config" then
+        LibStub("AceConfigDialog-3.0"):Open("oUF_MyLayout")
+    else
+        print("|cff00ff00oUF_MyLayout:|r コマンド: /mylayout config, /mylayout reset")
+        LibStub("AceConfigDialog-3.0"):Open("oUF_MyLayout")
+    end
+end
+
+-- ------------------------------------------------------------------------
 -- スタイル定義関数 (Shared Style Function)
 -- ------------------------------------------------------------------------
 -- この関数内で、各ユニットフレーム（プレイヤー、ターゲット等）の見た目を定義します。
@@ -20,18 +387,10 @@ local function Shared(self, unit)
     self:SetScript("OnEnter", UnitFrame_OnEnter)
     self:SetScript("OnLeave", UnitFrame_OnLeave)
     
-    -- フレームのサイズ設定 (幅230px, 高さ50px)
-    if unit == "pet" then
-        self:SetSize(134, 47)
-    elseif self:GetName() and self:GetName():match("oUF_MyLayoutMainTank") then
-        self:SetSize(120, 35)
-    elseif unit and unit:match("raid") then
-        self:SetSize(80, 35)
-    elseif unit and unit:match("boss") then
-        self:SetSize(160, 40)
-    else
-        self:SetSize(254, 47)
-    end
+    -- 初期化用にunitをセット
+    self.unit = unit
+    local C = ns.Config
+    local uConfig = C.Units.Default -- 初期構築用に必要
 
     -- 背景の設定 (オプション)
     local bg = self:CreateTexture(nil, "BACKGROUND")
@@ -44,23 +403,10 @@ local function Shared(self, unit)
     local Health = CreateFrame("StatusBar", nil, self)
     Health:SetPoint("TOPLEFT", self, "TOPLEFT", 2, -2)
     Health:SetPoint("TOPRIGHT", self, "TOPRIGHT", -2, -2)
-    if self:GetName() and self:GetName():match("oUF_MyLayoutMainTank") then
-        Health:SetHeight(26)
-    elseif unit and unit:match("raid") then
-        Health:SetHeight(22)
-    elseif unit and unit:match("boss") then
-        Health:SetHeight(26)
-    else
-        Health:SetHeight(30) -- HPバーの高さ
-    end
-    -- Health:SetStatusBarTexture("Interface\\BUTTONS\\WHITE8X8") -- シンプルなテクスチャ
-    Health:SetStatusBarTexture("Interface\\Addons\\oUF_MyLayout\\media\\textures\\Gradient.tga")
-    Health:SetStatusBarColor(0.25, 0.25, 0.25) -- #404040
 
     -- HPバーの背景
     local HealthBg = Health:CreateTexture(nil, "BACKGROUND")
     HealthBg:SetAllPoints(true)
-    HealthBg:SetColorTexture(0, 0, 0)
 
     -- オプション: クラスカラーや敵対反応カラーを有効化
     Health.colorTapping = true
@@ -78,12 +424,9 @@ local function Shared(self, unit)
     local Power = CreateFrame("StatusBar", nil, self)
     Power:SetPoint("TOPLEFT", Health, "BOTTOMLEFT", 0, -2)
     Power:SetPoint("TOPRIGHT", Health, "BOTTOMRIGHT", 0, -2)
-    Power:SetPoint("BOTTOM", self, "BOTTOM", 0, 2)
-    Power:SetStatusBarTexture("Interface\\Addons\\oUF_MyLayout\\media\\textures\\Minimalist.tga")
 
     local PowerBg = Power:CreateTexture(nil, "BACKGROUND")
     PowerBg:SetAllPoints(true)
-    PowerBg:SetColorTexture(1, 1, 1)
     PowerBg.multiplier = 0.2
 
     Power.colorClass = true -- クラスカラー
@@ -98,13 +441,11 @@ local function Shared(self, unit)
     -- 名前
     if unit ~= "player" then
         local Name = Health:CreateFontString(nil, "OVERLAY")
-        Name:SetFont("Interface\\Addons\\oUF_MyLayout\\media\\fonts\\Prototype.ttf", 20, "OUTLINE")
         if unit == "pet" then
             Name:SetPoint("BOTTOM", Health, "BOTTOM", 0, -25)
             Name:SetTextColor(1, 1, 1) -- 白色
             self:Tag(Name, "[name] [dead][offline]")
         elseif unit and unit:match("raid") then
-            Name:SetFont("Interface\\Addons\\oUF_MyLayout\\media\\fonts\\Prototype.ttf", 12, "OUTLINE")
             Name:SetPoint("CENTER", Health, "CENTER", 0, 0)
             self:Tag(Name, "[raidcolor][name] [dead][offline][my:afk]")
         elseif unit and unit:match("boss") then
@@ -113,10 +454,10 @@ local function Shared(self, unit)
         else
             if unit == "target" then
                 local Level = Health:CreateFontString(nil, "OVERLAY")
-                Level:SetFont("Interface\\Addons\\oUF_MyLayout\\media\\fonts\\Prototype.ttf", 20, "OUTLINE")
                 Level:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, 0)
                 self:Tag(Level, "[difficulty][level][shortclassification]")
                 Name:SetPoint("LEFT", Level, "RIGHT", 5, 0)
+                self.Level = Level
             else
                 Name:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, 0)
             end
@@ -130,10 +471,8 @@ local function Shared(self, unit)
     if unit ~= "pet" and not (unit and unit:match("raid")) then
         local HpVal = Health:CreateFontString(nil, "OVERLAY")
         if unit and unit:match("boss") then
-            HpVal:SetFont("Interface\\Addons\\oUF_MyLayout\\media\\fonts\\Prototype.ttf", 20, "OUTLINE")
             HpVal:SetPoint("LEFT", self.Name, "RIGHT", 5, 0)
         else
-            HpVal:SetFont("Interface\\Addons\\oUF_MyLayout\\media\\fonts\\Prototype.ttf", 24, "OUTLINE")
             HpVal:SetPoint("RIGHT", Health, "RIGHT", 0, 0)
         end
         if unit == "player" then
@@ -141,23 +480,24 @@ local function Shared(self, unit)
         else
             self:Tag(HpVal, "[perhp]%") -- パーセント表示
         end
+        self.HpVal = HpVal
     end
 
     -- --------------------------------------------------------------------
     -- 5. Portrait (3Dモデル)
     -- --------------------------------------------------------------------
-    if unit ~= "pet" and not (unit and unit:match("raid")) and not (unit and unit:match("boss")) then
-        local Portrait = CreateFrame("PlayerModel", nil, self)
-        Portrait:SetSize(150, 43)
-        Portrait:SetPoint("LEFT", self, "LEFT", 2, 0) -- フレームの右側に配置
+    local Portrait = CreateFrame("PlayerModel", nil, self)
+    Portrait:SetSize(150, 43)
+    Portrait:SetPoint("LEFT", self, "LEFT", 2, 0) -- フレームの右側に配置
 
-        -- 背景 (オプション)
-        local PortraitBg = self:CreateTexture(nil, "BACKGROUND")
-        PortraitBg:SetAllPoints(Portrait)
-        PortraitBg:SetColorTexture(0, 0, 0, 0.5)
+    -- 背景 (オプション)
+    local PortraitBg = self:CreateTexture(nil, "BACKGROUND")
+    PortraitBg:SetAllPoints(Portrait)
+    PortraitBg:SetColorTexture(0, 0, 0, 0.5)
 
-        self.Portrait = Portrait
-    end
+    self.Portrait = Portrait
+    self.PortraitBg = PortraitBg
+    self.PortraitModel = Portrait -- 参照を保持しておく
 
     -- --------------------------------------------------------------------
     -- 6. Raid Icon (レイドアイコン)
@@ -175,16 +515,12 @@ local function Shared(self, unit)
         Castbar:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -5)
         Castbar:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -5)
         Castbar:SetHeight(20)
-        Castbar:SetStatusBarTexture("Interface\\Addons\\oUF_MyLayout\\media\\textures\\Gradient.tga")
-        Castbar:SetStatusBarColor(1, 0.7, 0) -- オレンジ色
 
         local CastbarBg = Castbar:CreateTexture(nil, "BACKGROUND")
         CastbarBg:SetAllPoints(true)
-        CastbarBg:SetColorTexture(0.2, 0.2, 0.2)
 
         -- 呪文名
         local CastbarText = Castbar:CreateFontString(nil, "OVERLAY")
-        CastbarText:SetFont("Interface\\Addons\\oUF_MyLayout\\media\\fonts\\Prototype.ttf", 12, "OUTLINE")
         CastbarText:SetPoint("LEFT", Castbar, "LEFT", 2, 0)
         
         -- アイコン
@@ -195,7 +531,6 @@ local function Shared(self, unit)
 
         -- 詠唱時間
         local CastbarTime = Castbar:CreateFontString(nil, "OVERLAY")
-        CastbarTime:SetFont("Interface\\Addons\\oUF_MyLayout\\media\\fonts\\Prototype.ttf", 12, "OUTLINE")
         CastbarTime:SetPoint("RIGHT", Castbar, "RIGHT", -2, 0)
 
         Castbar.bg = CastbarBg
@@ -205,6 +540,7 @@ local function Shared(self, unit)
         Castbar.timeToHold = 0.5 -- 完了後に少し表示を残す
 
         self.Castbar = Castbar
+        self.CastbarRaw = Castbar
     end
 
     -- --------------------------------------------------------------------
@@ -260,7 +596,6 @@ local function Shared(self, unit)
         for i = 1, 6 do -- 最大6ポイント
             local bar = CreateFrame("StatusBar", nil, self)
             bar:SetHeight(10)
-            bar:SetStatusBarTexture("Interface\\Addons\\oUF_MyLayout\\media\\textures\\Gradient.tga")
             bar:SetWidth((254 - (5 * 2)) / 6) -- フレーム幅に合わせて均等配置
 
             if i == 1 then
@@ -287,7 +622,6 @@ local function Shared(self, unit)
         for i = 1, 6 do
             local rune = CreateFrame("StatusBar", nil, self)
             rune:SetHeight(10)
-            rune:SetStatusBarTexture("Interface\\Addons\\oUF_MyLayout\\media\\textures\\Gradient.tga")
             rune:SetWidth((254 - (5 * 2)) / 6) -- ClassPowerと同じ幅計算
 
             if i == 1 then
@@ -314,7 +648,6 @@ local function Shared(self, unit)
         AdditionalPower:SetHeight(10)
         AdditionalPower:SetPoint("TOPLEFT", self.Power, "BOTTOMLEFT", 0, -2)
         AdditionalPower:SetPoint("TOPRIGHT", self.Power, "BOTTOMRIGHT", 0, -2)
-        AdditionalPower:SetStatusBarTexture("Interface\\Addons\\oUF_MyLayout\\media\\textures\\Gradient.tga")
         AdditionalPower.colorPower = true
 
         local bg = AdditionalPower:CreateTexture(nil, "BACKGROUND")
@@ -352,6 +685,31 @@ local function Shared(self, unit)
         AssistantIndicator:SetPoint("TOPLEFT", Health, "TOPLEFT", 2, -2)
     end
     self.AssistantIndicator = AssistantIndicator
+
+    -- --------------------------------------------------------------------
+    -- 17. Buffs
+    -- --------------------------------------------------------------------
+    local Buffs = CreateFrame("Frame", nil, self)
+    Buffs.gap = true
+    Buffs.initialAnchor = "BOTTOMLEFT"
+    Buffs["growth-x"] = "RIGHT"
+    Buffs["growth-y"] = "UP"
+    Buffs.showStealableBuffs = true
+    Buffs.CustomFilter = CustomFilter
+    self.Buffs = Buffs
+
+    -- 18. Debuffs
+    local Debuffs = CreateFrame("Frame", nil, self)
+    Debuffs.gap = true
+    Debuffs.initialAnchor = "BOTTOMLEFT"
+    Debuffs["growth-x"] = "RIGHT"
+    Debuffs["growth-y"] = "UP"
+    Debuffs.showDebuffType = true
+    Debuffs.CustomFilter = CustomFilter
+    self.Debuffs = Debuffs
+
+    -- スタイル適用 (初期化)
+    UpdateUnitFrame(self, true)
 end
 
 -- ------------------------------------------------------------------------
@@ -362,32 +720,29 @@ end
 oUF:RegisterStyle("MyLayout", Shared)
 
 oUF:Factory(function(self)
+    local C = ns.Config
     self:SetActiveStyle("MyLayout")
 
     -- プレイヤーフレームの生成と配置
-    local player = self:Spawn("player")
-    player:SetPoint("CENTER", -200, -200)
+    ns.player = self:Spawn("player")
 
     -- ターゲットフレームの生成と配置
-    local target = self:Spawn("target")
-    target:SetPoint("CENTER", 200, -200)
+    ns.target = self:Spawn("target")
     
     -- ペットフレームの生成と配置
-    local pet = self:Spawn("pet")
-    pet:SetPoint("CENTER", 0, -200)
+    ns.pet = self:Spawn("pet")
 
     -- フォーカスフレームなども同様に追加可能
     -- self:Spawn("focus"):SetPoint("CENTER", 0, -100)
 
     -- パーティフレームの生成
-    local party = self:SpawnHeader(nil, nil, "custom [group:party, nogroup:raid] show; hide",
+    ns.party = self:SpawnHeader(nil, nil, "custom [group:party, nogroup:raid] show; hide",
         "showParty", true,
         "yOffset", -60 -- 垂直方向に並べる
     )
-    party:SetPoint("TOPLEFT", 150, -200)
 
     -- レイドフレームの生成
-    local raid = self:SpawnHeader(nil, nil, "custom [group:raid] show; hide",
+    ns.raid = self:SpawnHeader(nil, nil, "custom [group:raid] show; hide",
         "showRaid", true,
         "xOffset", 5,
         "yOffset", -5,
@@ -400,25 +755,20 @@ oUF:Factory(function(self)
         "columnSpacing", 5,
         "columnAnchorPoint", "LEFT"
     )
-    raid:SetPoint("TOPLEFT", UIParent, "BOTTOMRIGHT", -435, 225)
 
     -- ボスフレームの生成 (Boss1 - Boss5)
-    local prevBoss
+    ns.boss = {}
     for i = 1, 5 do
-        local boss = self:Spawn("boss" .. i)
-        if i == 1 then
-            boss:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", 5, -300)
-        else
-            boss:SetPoint("TOP", prevBoss, "BOTTOM", 0, -60)
-        end
-        prevBoss = boss
+        ns.boss[i] = self:Spawn("boss" .. i)
     end
 
     -- メインタンクフレームの生成
-    local maintank = self:SpawnHeader("oUF_MyLayoutMainTank", nil, "custom [group:raid] show; hide",
+    ns.maintank = self:SpawnHeader("oUF_MyLayoutMainTank", nil, "custom [group:raid] show; hide",
         "showRaid", true,
         "groupFilter", "MAINTANK",
         "yOffset", -10
     )
-    maintank:SetPoint("TOPLEFT", 50, -350)
+
+    -- 初期ロード時に一度すべてのフレームを更新して位置と表示状態を確定
+    ns.UpdateFrames()
 end)
