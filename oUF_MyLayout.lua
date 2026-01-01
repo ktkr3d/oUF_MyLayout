@@ -108,6 +108,9 @@ local function UpdateUnitFrame(self, isInit)
         local hSize = hConfig.Size or 24
         local hOutline = hConfig.Outline or "OUTLINE"
         self.HpVal:SetFont(hFont, hSize, hOutline)
+        self.HpVal:ClearAllPoints()
+        local point, x, y = hConfig.Point or "RIGHT", hConfig.X or 0, hConfig.Y or 0
+        self.HpVal:SetPoint(point, self.Health, point, x, y)
 
         -- タグの更新
         local tag = uConfig.HealthTag or "[perhp]%"
@@ -137,6 +140,37 @@ local function UpdateUnitFrame(self, isInit)
         end
 
         if self.Castbar then
+            local defaultCbConfig = (ns.Defaults.Units[unitKey] and ns.Defaults.Units[unitKey].Castbar) or {}
+
+            local height = cbConfig.Height or defaultCbConfig.Height or 20
+            local width = cbConfig.Width or defaultCbConfig.Width or 0
+
+            self.Castbar:SetHeight(height)
+            self.Castbar:ClearAllPoints()
+
+            local point = cbConfig.Point or defaultCbConfig.Point or "TOPLEFT"
+            local relativeToKey = cbConfig.RelativeTo or defaultCbConfig.RelativeTo or "FRAME"
+            local relativePoint = cbConfig.RelativePoint or defaultCbConfig.RelativePoint or "BOTTOMLEFT"
+            local x = cbConfig.X
+            if x == nil then x = defaultCbConfig.X or 0 end
+            local y = cbConfig.Y
+            if y == nil then y = defaultCbConfig.Y or -5 end
+
+            local relativeFrame = self
+            if relativeToKey == "HEALTH" then
+                relativeFrame = self.Health
+            elseif relativeToKey == "POWER" then
+                relativeFrame = self.Power
+            end
+
+            self.Castbar:SetPoint(point, relativeFrame, relativePoint, x, y)
+
+            if width > 0 then
+                self.Castbar:SetWidth(width)
+            else -- Auto width
+                self.Castbar:SetWidth(self:GetWidth())
+            end
+
             local textureBar = GetMedia("statusbar", uConfig.HealthBarTexture or C.Media.HealthBar)
             self.Castbar:SetStatusBarTexture(textureBar)
             self.Castbar:SetStatusBarColor(unpack(C.Colors.Castbar))
@@ -221,29 +255,53 @@ local function UpdateUnitFrame(self, isInit)
         end
     end
 
+    -- アイコンの更新
     local iConfig = uConfig.Icons or {}
-    local function UpdateIcon(icon, iconConfig)
-        if not icon or not iconConfig then return end
+    local unitKey
+    if self.unit == "pet" then unitKey = "Pet"
+    elseif self:GetName() and self:GetName():match("oUF_MyLayoutMainTank") then unitKey = "MainTank"
+    elseif self.unit and self.unit:match("raid") then unitKey = "Raid"
+    elseif self.unit and self.unit:match("party") then unitKey = "Party"
+    elseif self.unit and self.unit:match("boss") then unitKey = "Boss"
+    elseif self.unit == "player" then unitKey = "Player"
+    elseif self.unit == "target" then unitKey = "Target"
+    else unitKey = "Default" end
+    local defaultIconsConfig = (ns.Defaults.Units[unitKey] and ns.Defaults.Units[unitKey].Icons) or {}
 
-        if iconConfig.Enable then
-            icon:Show()
-            icon:SetSize(iconConfig.Size, iconConfig.Size)
+    local function UpdateIcon(icon, iconKey)
+        if not icon then return end
+
+        local liveIconConfig = iConfig[iconKey] or {}
+        local defaultIconConfig = defaultIconsConfig[iconKey] or {}
+
+        local isEnabled = liveIconConfig.Enable
+        if isEnabled == nil then isEnabled = defaultIconConfig.Enable end
+
+        local size = liveIconConfig.Size or defaultIconConfig.Size
+        local point = liveIconConfig.Point or defaultIconConfig.Point
+        local x = liveIconConfig.X
+        if x == nil then x = defaultIconConfig.X end
+        local y = liveIconConfig.Y
+        if y == nil then y = defaultIconConfig.Y end
+
+        if isEnabled and size and point and x ~= nil and y ~= nil then
+            icon:SetAlpha(1)
+            icon:SetSize(size, size)
             icon:ClearAllPoints()
-            -- The parent of the icons is self.Health
-            icon:SetPoint(iconConfig.Point, self.Health, iconConfig.Point, iconConfig.X, iconConfig.Y)
+            icon:SetPoint(point, self.Health, point, x, y)
         else
-            icon:Hide()
+            icon:SetAlpha(0)
         end
     end
 
-    UpdateIcon(self.RaidTargetIndicator, iConfig.RaidTarget)
-    UpdateIcon(self.GroupRoleIndicator, iConfig.GroupRole)
-    UpdateIcon(self.ReadyCheckIndicator, iConfig.ReadyCheck)
-    UpdateIcon(self.LeaderIndicator, iConfig.Leader)
-    UpdateIcon(self.AssistantIndicator, iConfig.Assistant)
+    UpdateIcon(self.RaidTargetIndicator, "RaidTarget")
+    UpdateIcon(self.GroupRoleIndicator, "GroupRole")
+    UpdateIcon(self.ReadyCheckIndicator, "ReadyCheck")
+    UpdateIcon(self.LeaderIndicator, "Leader")
+    UpdateIcon(self.AssistantIndicator, "Assistant")
     if self.unit == "player" then
-        UpdateIcon(self.RestingIndicator, iConfig.Resting)
-        UpdateIcon(self.CombatIndicator, iConfig.Combat)
+        UpdateIcon(self.RestingIndicator, "Resting")
+        UpdateIcon(self.CombatIndicator, "Combat")
     end
 end
 
@@ -336,6 +394,9 @@ function ns.UpdateFrames()
     for _, obj in pairs(oUF.objects) do
         if obj.style == "MyLayout" then
             UpdateUnitFrame(obj)
+            if obj.Health and obj.Health.ForceUpdate then
+                obj.Health:ForceUpdate()
+            end
         end
     end
 end
@@ -366,8 +427,9 @@ Loader:SetScript("OnEvent", function(self, event, addon)
 
     -- AceDBの初期化
     -- Config.luaで定義した ns.Config をデフォルト値として使用
+    ns.Defaults = ns.Config -- Save reference to the original defaults
     local defaults = {
-        profile = ns.Config
+        profile = ns.Defaults
     }
     ns.db = LibStub("AceDB-3.0"):New("oUF_MyLayoutDB", defaults, true)
 
@@ -377,7 +439,7 @@ Loader:SetScript("OnEvent", function(self, event, addon)
     ns.db.RegisterCallback(ns, "OnProfileReset", "OnProfileChanged")
 
     -- 現在のプロファイルを ns.Config にセット
-    ns.Config = ns.db.profile
+    ns.Config = ns.db.profile -- ns.Config now points to the live profile
 
     -- 保存された設定を適用するためにフレームを更新
     ns.UpdateFrames()
@@ -440,6 +502,32 @@ local function Shared(self, unit)
     Health.colorReaction = false
     Health.bg = HealthBg
 
+    Health.PostUpdate = function(health, unit, min, max)
+        local parent = health:GetParent()
+        if not parent.HpVal then return end
+
+        local C = ns.Config
+        local uConfig = C.Units.Default
+        if parent.unit == "pet" then uConfig = C.Units.Pet
+        elseif parent:GetName() and parent:GetName():match("oUF_MyLayoutMainTank") then uConfig = C.Units.MainTank
+        elseif parent.unit and parent.unit:match("raid") then uConfig = C.Units.Raid
+        elseif parent.unit and parent.unit:match("party") then uConfig = C.Units.Party
+        elseif parent.unit and parent.unit:match("boss") then uConfig = C.Units.Boss
+        elseif parent.unit == "player" then uConfig = C.Units.Player
+        elseif parent.unit == "target" then uConfig = C.Units.Target
+        end
+
+        if uConfig.HideHealthTextAtFull then
+            if min == max then
+                parent.HpVal:Hide()
+            else
+                parent.HpVal:Show()
+            end
+        else
+            parent.HpVal:Show()
+        end
+    end
+
     -- oUFに登録 (self.Healthに代入することでoUFが自動更新を行う)
     self.Health = Health
 
@@ -495,11 +583,7 @@ local function Shared(self, unit)
     -- HP数値
     if unit ~= "pet" and not (unit and unit:match("raid")) then
         local HpVal = Health:CreateFontString(nil, "OVERLAY")
-        if unit and unit:match("boss") then
-            HpVal:SetPoint("LEFT", self.Name, "RIGHT", 5, 0)
-        else
-            HpVal:SetPoint("RIGHT", Health, "RIGHT", 0, 0)
-        end
+        -- 位置はUpdateUnitFrameで設定
         if unit == "player" then
             self:Tag(HpVal, "[perhp]% [dead][offline][my:afk]")
         else
@@ -535,9 +619,6 @@ local function Shared(self, unit)
     -- --------------------------------------------------------------------
     if not (unit and (unit:match("raid") or unit:match("boss"))) then
         local Castbar = CreateFrame("StatusBar", nil, self)
-        Castbar:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -5)
-        Castbar:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -5)
-        Castbar:SetHeight(20)
 
         local CastbarBg = Castbar:CreateTexture(nil, "BACKGROUND")
         CastbarBg:SetAllPoints(true)

@@ -57,37 +57,44 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
     yIndex = yIndex or 3
 
     local function CreateIconSettings(iconKey, iconName, order)
-        -- アイコン設定が存在しない場合に備えて空のテーブルで初期化
-        if not config.Icons then config.Icons = {} end
-        if not config.Icons[iconKey] then config.Icons[iconKey] = {} end
+        -- Get a reference to the default config for this icon from the DEFAULTS table
+        local unitDefaults = (ns.Defaults.Units[key] or ns.Defaults.Units.Default)
+        local defaultIconConfig = (unitDefaults and unitDefaults.Icons and unitDefaults.Icons[iconKey]) or {}
+
+        -- This function will be called by the get/set closures to ensure the path exists
+        local function getIconConfig()
+            if not config.Icons then config.Icons = {} end
+            if not config.Icons[iconKey] then config.Icons[iconKey] = {} end
+            return config.Icons[iconKey]
+        end
 
         return {
             type = "group", name = iconName, order = order, inline = true,
             args = {
                 enable = {
                     type = "toggle", name = "Enable", order = 1,
-                    get = function() return config.Icons[iconKey].Enable end,
-                    set = function(_, val) config.Icons[iconKey].Enable = val; ns.UpdateFrames() end,
+                    get = function() return getIconConfig().Enable end,
+                    set = function(_, val) getIconConfig().Enable = val; ns.UpdateFrames() end,
                 },
                 size = {
                     type = "range", name = "Size", min = 8, max = 64, step = 1, order = 2,
-                    get = function() return config.Icons[iconKey].Size end,
-                    set = function(_, val) config.Icons[iconKey].Size = val; ns.UpdateFrames() end,
+                    get = function() return getIconConfig().Size or defaultIconConfig.Size end,
+                    set = function(_, val) getIconConfig().Size = val; ns.UpdateFrames() end,
                 },
                 point = {
                     type = "select", name = "Anchor Point", values = iconAnchorPoints, order = 3,
-                    get = function() return config.Icons[iconKey].Point end,
-                    set = function(_, val) config.Icons[iconKey].Point = val; ns.UpdateFrames() end,
+                    get = function() return getIconConfig().Point or defaultIconConfig.Point end,
+                    set = function(_, val) getIconConfig().Point = val; ns.UpdateFrames() end,
                 },
                 x = {
                     type = "range", name = "X Offset", min = -100, max = 100, step = 1, order = 4,
-                    get = function() return config.Icons[iconKey].X end,
-                    set = function(_, val) config.Icons[iconKey].X = val; ns.UpdateFrames() end,
+                    get = function() return getIconConfig().X or defaultIconConfig.X end,
+                    set = function(_, val) getIconConfig().X = val; ns.UpdateFrames() end,
                 },
                 y = {
                     type = "range", name = "Y Offset", min = -100, max = 100, step = 1, order = 5,
-                    get = function() return config.Icons[iconKey].Y end,
-                    set = function(_, val) config.Icons[iconKey].Y = val; ns.UpdateFrames() end,
+                    get = function() return getIconConfig().Y or defaultIconConfig.Y end,
+                    set = function(_, val) getIconConfig().Y = val; ns.UpdateFrames() end,
                 },
             }
         }
@@ -169,6 +176,21 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
                             values = { ["NONE"] = "None", ["OUTLINE"] = "Outline", ["THICKOUTLINE"] = "Thick Outline" },
                             get = function() return config.HealthText.Outline end,
                             set = function(_, val) config.HealthText.Outline = val; ns.UpdateFrames() end,
+                        },
+                        point = {
+                            type = "select", name = "Anchor Point", values = iconAnchorPoints, order = 4,
+                            get = function() return config.HealthText.Point or "RIGHT" end,
+                            set = function(_, val) config.HealthText.Point = val; ns.UpdateFrames() end,
+                        },
+                        x = {
+                            type = "range", name = "X Offset", min = -100, max = 100, step = 1, order = 5,
+                            get = function() return config.HealthText.X or 0 end,
+                            set = function(_, val) config.HealthText.X = val; ns.UpdateFrames() end,
+                        },
+                        y = {
+                            type = "range", name = "Y Offset", min = -100, max = 100, step = 1, order = 6,
+                            get = function() return config.HealthText.Y or 0 end,
+                            set = function(_, val) config.HealthText.Y = val; ns.UpdateFrames() end,
                         },
                     }
                 }
@@ -331,16 +353,64 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
     end
 
     if hasCastbar then
+        local unitDefaults = (ns.Defaults.Units[key] or ns.Defaults.Units.Default)
+        local defaultCbConfig = (unitDefaults and unitDefaults.Castbar) or {}
+
+        local function getCbConfig()
+            if not config.Castbar then config.Castbar = {} end
+            return config.Castbar
+        end
+
         args.castbar = {
             type = "group", name = "Cast Bar", order = 25,
             args = {
                 enable = {
                     type = "toggle", name = "Enable", order = 0,
-                    get = function() return config.Castbar.Enable end,
-                    set = function(_, val) config.Castbar.Enable = val; ns.UpdateFrames() end,
+                    get = function() return getCbConfig().Enable end,
+                    set = function(_, val) getCbConfig().Enable = val; ns.UpdateFrames() end,
+                },
+                height = {
+                    type = "range", name = "Height", min = 5, max = 50, step = 1, order = 2,
+                    get = function() return getCbConfig().Height or defaultCbConfig.Height end,
+                    set = function(_, val) getCbConfig().Height = val; ns.UpdateFrames() end,
+                },
+                width = {
+                    type = "range", name = "Width (0=auto)", min = 0, max = 500, step = 1, order = 3,
+                    get = function() return getCbConfig().Width or defaultCbConfig.Width end,
+                    set = function(_, val) getCbConfig().Width = val; ns.UpdateFrames() end,
+                },
+                position = {
+                    type = "group", name = "Position", inline = true, order = 4,
+                    args = {
+                        point = {
+                            type = "select", name = "Anchor Point", values = iconAnchorPoints, order = 1,
+                            get = function() return getCbConfig().Point or defaultCbConfig.Point end,
+                            set = function(_, val) getCbConfig().Point = val; ns.UpdateFrames() end,
+                        },
+                        relativeTo = {
+                            type = "select", name = "Relative To", values = { FRAME = "Frame", HEALTH = "Health Bar", POWER = "Power Bar" }, order = 2,
+                            get = function() return getCbConfig().RelativeTo or defaultCbConfig.RelativeTo end,
+                            set = function(_, val) getCbConfig().RelativeTo = val; ns.UpdateFrames() end,
+                        },
+                        relativePoint = {
+                            type = "select", name = "Relative Point", values = iconAnchorPoints, order = 3,
+                            get = function() return getCbConfig().RelativePoint or defaultCbConfig.RelativePoint end,
+                            set = function(_, val) getCbConfig().RelativePoint = val; ns.UpdateFrames() end,
+                        },
+                        x = {
+                            type = "range", name = "X Offset", min = -200, max = 200, step = 1, order = 4,
+                            get = function() return getCbConfig().X or defaultCbConfig.X end,
+                            set = function(_, val) getCbConfig().X = val; ns.UpdateFrames() end,
+                        },
+                        y = {
+                            type = "range", name = "Y Offset", min = -200, max = 200, step = 1, order = 5,
+                            get = function() return getCbConfig().Y or defaultCbConfig.Y end,
+                            set = function(_, val) getCbConfig().Y = val; ns.UpdateFrames() end,
+                        },
+                    }
                 },
                 text = {
-                    type = "group", name = "Font Settings", inline = true, order = 1,
+                    type = "group", name = "Font Settings", inline = true, order = 5,
                     args = {
                         font = {
                             type = "select", name = "Font", order = 1,
@@ -368,6 +438,16 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
     if key == "Player" then
         args.icons.args.Resting = CreateIconSettings("Resting", "Resting", 10)
         args.icons.args.Combat = CreateIconSettings("Combat", "Combat", 11)
+    end
+
+    if key ~= "Pet" and key ~= "Raid" then
+        args.health.args.hideAtFull = {
+            type = "toggle",
+            name = "Hide at Full Health",
+            order = 4,
+            get = function() return config.HideHealthTextAtFull end,
+            set = function(_, val) config.HideHealthTextAtFull = val; ns.UpdateFrames() end,
+        }
     end
 
     return {

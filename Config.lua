@@ -28,6 +28,7 @@ ns.Config = {
             PowerHeight = 10,
             PowerBarTexture = nil,
             HealthBarTexture = nil,
+            HideHealthTextAtFull = true,
             HealthTag = "[perhp]%",
             NameText = {
                 Font = nil, -- nilの場合はMedia.Fontを使用
@@ -38,9 +39,19 @@ ns.Config = {
                 Font = nil,
                 Size = 24,
                 Outline = "OUTLINE",
+                Point = "RIGHT",
+                X = -8,
+                Y = -3,
             },
             Castbar = {
                 Enable = true,
+                Point = "TOPLEFT",
+                RelativeTo = "FRAME",
+                RelativePoint = "BOTTOMLEFT",
+                X = 0,
+                Y = -5,
+                Width = 0, -- 0 for auto
+                Height = 20,
             },
             CastbarText = {
                 Font = nil,
@@ -56,11 +67,11 @@ ns.Config = {
             },
             Icons = {
                 RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
-                GroupRole = { Enable = true, Size = 32, Point = "TOPRIGHT", X = 10, Y = 10 },
+                GroupRole = { Enable = true, Size = 32, Point = "TOPRIGHT", X = 15, Y = 15 },
                 ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
                 Resting = { Enable = true, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
                 Combat = { Enable = true, Size = 32, Point = "BOTTOMLEFT", X = -10, Y = -10 },
-                Leader = { Enable = true, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
+                Leader = { Enable = true, Size = 32, Point = "TOPLEFT", X = -15, Y = 15 },
                 Assistant = { Enable = true, Size = 16, Point = "TOPLEFT", X = 2, Y = -2 },
             },
             Buffs = {
@@ -87,6 +98,7 @@ ns.Config = {
             PowerHeight = 10,
             PowerBarTexture = nil,
             HealthBarTexture = nil,
+            HideHealthTextAtFull = true,
             HealthTag = "[perhp]%",
             NameTag = "[raidcolor][name] [dead][offline][my:afk]",
             NameText = {
@@ -96,9 +108,19 @@ ns.Config = {
             HealthText = {
                 Size = 24,
                 Outline = "OUTLINE",
+                Point = "RIGHT",
+                X = -8,
+                Y = -3,
             },
             Castbar = {
                 Enable = true,
+                Point = "TOPLEFT",
+                RelativeTo = "FRAME",
+                RelativePoint = "BOTTOMLEFT",
+                X = 0,
+                Y = -5,
+                Width = 0, -- 0 for auto
+                Height = 20,
             },
             CastbarText = {
                 Font = nil,
@@ -113,14 +135,14 @@ ns.Config = {
                 Y = 0,
             },
             Icons = {
-                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
-                GroupRole = { Enable = true, Size = 32, Point = "TOPRIGHT", X = 10, Y = 10 },
+                RaidTarget = { Enable = true, Size = 42, Point = "TOP", X = 0, Y = 15 },
+                GroupRole = { Enable = true, Size = 32, Point = "TOPRIGHT", X = 15, Y = 15 },
                 ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
-                Leader = { Enable = true, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
+                Leader = { Enable = true, Size = 32, Point = "TOPLEFT", X = -15, Y = 15 },
                 Assistant = { Enable = true, Size = 16, Point = "TOPLEFT", X = 2, Y = -2 },
             },
             Buffs = {
-                Enable = true,
+                Enable = false,
                 Size = 20,
                 X = 0,
                 Y = 10,
@@ -131,7 +153,7 @@ ns.Config = {
                 Size = 20,
                 X = 0,
                 Y = 35,
-                PlayerOnly = false,
+                PlayerOnly = true,
             },
             Position = {"CENTER", 200, -200},
         },
@@ -143,7 +165,7 @@ ns.Config = {
             PowerHeight = 10,
             PowerBarTexture = nil,
             HealthBarTexture = nil,
-            NameTag = "[name] [dead][offline]",
+            NameTag = "[raidcolor][name] [dead][offline]",
             NameText = {
                 Size = 20,
                 Outline = "OUTLINE",
@@ -151,9 +173,19 @@ ns.Config = {
             HealthText = {
                 Size = 24,
                 Outline = "OUTLINE",
+                Point = "RIGHT",
+                X = 0,
+                Y = 0,
             },
             Castbar = {
                 Enable = true,
+                Point = "TOPLEFT",
+                RelativeTo = "FRAME",
+                RelativePoint = "BOTTOMLEFT",
+                X = 0,
+                Y = -5,
+                Width = 0, -- 0 for auto
+                Height = 20,
             },
             CastbarText = {
                 Font = nil,
@@ -169,10 +201,10 @@ ns.Config = {
             },
             Icons = {
                 RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
-                GroupRole = { Enable = true, Size = 32, Point = "TOPRIGHT", X = 10, Y = 10 },
-                ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
-                Leader = { Enable = true, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
-                Assistant = { Enable = true, Size = 16, Point = "TOPLEFT", X = 2, Y = -2 },
+                GroupRole = { Enable = false, Size = 32, Point = "TOPRIGHT", X = 10, Y = 10 },
+                ReadyCheck = { Enable = false, Size = 24, Point = "CENTER", X = 0, Y = 0 },
+                Leader = { Enable = false, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
+                Assistant = { Enable = false, Size = 16, Point = "TOPLEFT", X = 2, Y = -2 },
             },
             Buffs = {
                 Enable = false,
@@ -198,8 +230,9 @@ ns.Config = {
             PowerHeight = 10,
             PowerBarTexture = nil,
             HealthBarTexture = nil,
+            HideHealthTextAtFull = true,
             HealthTag = "[perhp]%",
-            NameTag = "[name] [dead][offline]",
+            NameTag = "[raidcolor][name] [dead][offline]",
             NameText = {
                 Size = 20,
                 Outline = "OUTLINE",
@@ -207,9 +240,19 @@ ns.Config = {
             HealthText = {
                 Size = 20,
                 Outline = "OUTLINE",
+                Point = "RIGHT",
+                X = -8,
+                Y = -3,
             },
             Castbar = {
                 Enable = true,
+                Point = "LEFT",
+                RelativeTo = "FRAME",
+                RelativePoint = "RIGHT",
+                X = 45,
+                Y = 0,
+                Width = 100, -- 0 for auto
+                Height = 20,
             },
             CastbarText = {
                 Font = nil,
@@ -224,10 +267,10 @@ ns.Config = {
                 Y = 0,
             },
             Icons = {
-                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
-                GroupRole = { Enable = true, Size = 32, Point = "TOPRIGHT", X = 10, Y = 10 },
+                RaidTarget = { Enable = true, Size = 32, Point = "TOP", X = 0, Y = 15 },
+                GroupRole = { Enable = true, Size = 32, Point = "TOPRIGHT", X = 15, Y = 15 },
                 ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
-                Leader = { Enable = true, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
+                Leader = { Enable = true, Size = 32, Point = "TOPLEFT", X = -15, Y = 15 },
                 Assistant = { Enable = true, Size = 16, Point = "TOPLEFT", X = 2, Y = -2 },
             },
             Buffs = {
@@ -244,7 +287,7 @@ ns.Config = {
                 Y = 35,
                 PlayerOnly = false,
             },
-            Position = {"TOPLEFT", 150, -200},
+            Position = {"TOPLEFT", 200, -200},
         },
         Raid = {
             Enable = true,
@@ -263,6 +306,9 @@ ns.Config = {
             HealthText = {
                 Size = 12,
                 Outline = "OUTLINE",
+                Point = "RIGHT",
+                X = 0,
+                Y = 0,
             },
             Portrait = {
                 Enable = false,
@@ -302,6 +348,7 @@ ns.Config = {
             PowerHeight = 8,
             PowerBarTexture = nil,
             HealthBarTexture = nil,
+            HideHealthTextAtFull = true,
             HealthTag = "[perhp]%",
             NameTag = "[raidcolor][name] [dead][offline]",
             NameText = {
@@ -311,6 +358,9 @@ ns.Config = {
             HealthText = {
                 Size = 20,
                 Outline = "OUTLINE",
+                Point = "RIGHT",
+                X = 0,
+                Y = 0,
             },
             Portrait = {
                 Enable = false,
@@ -321,10 +371,10 @@ ns.Config = {
             },
             Icons = {
                 RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
-                GroupRole = { Enable = true, Size = 32, Point = "TOPRIGHT", X = 10, Y = 10 },
-                ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
-                Leader = { Enable = true, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
-                Assistant = { Enable = true, Size = 16, Point = "TOPLEFT", X = 2, Y = -2 },
+                GroupRole = { Enable = false, Size = 32, Point = "TOPRIGHT", X = 10, Y = 10 },
+                ReadyCheck = { Enable = false, Size = 24, Point = "CENTER", X = 0, Y = 0 },
+                Leader = { Enable = false, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
+                Assistant = { Enable = false, Size = 16, Point = "TOPLEFT", X = 2, Y = -2 },
             },
             Buffs = {
                 Enable = false,
@@ -350,6 +400,7 @@ ns.Config = {
             PowerHeight = 8,
             PowerBarTexture = nil,
             HealthBarTexture = nil,
+            HideHealthTextAtFull = true,
             HealthTag = "[perhp]%",
             NameTag = "[raidcolor][name]",
             NameText = {
@@ -359,6 +410,9 @@ ns.Config = {
             HealthText = {
                 Size = 12,
                 Outline = "OUTLINE",
+                Point = "RIGHT",
+                X = 0,
+                Y = 0,
             },
             Portrait = {
                 Enable = false,
@@ -399,6 +453,7 @@ ns.Config = {
             PowerHeight = 10,
             PowerBarTexture = nil,
             HealthBarTexture = nil,
+            HideHealthTextAtFull = true,
             HealthTag = "[perhp]%",
             NameTag = "[raidcolor][name] [dead][offline][my:afk]",
             NameText = {
@@ -408,9 +463,19 @@ ns.Config = {
             HealthText = {
                 Size = 24,
                 Outline = "OUTLINE",
+                Point = "RIGHT",
+                X = 0,
+                Y = 0,
             },
             Castbar = {
                 Enable = true,
+                Point = "TOPLEFT",
+                RelativeTo = "FRAME",
+                RelativePoint = "BOTTOMLEFT",
+                X = 0,
+                Y = -5,
+                Width = 0, -- 0 for auto
+                Height = 20,
             },
             CastbarText = {
                 Font = nil,
@@ -425,11 +490,11 @@ ns.Config = {
                 Y = 0,
             },
             Icons = {
-                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
-                GroupRole = { Enable = true, Size = 32, Point = "TOPRIGHT", X = 10, Y = 10 },
-                ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
-                Leader = { Enable = true, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
-                Assistant = { Enable = true, Size = 16, Point = "TOPLEFT", X = 2, Y = -2 },
+                RaidTarget = { Enable = false, Size = 20, Point = "TOP", X = 0, Y = 0 },
+                GroupRole = { Enable = false, Size = 32, Point = "TOPRIGHT", X = 10, Y = 10 },
+                ReadyCheck = { Enable = false, Size = 24, Point = "CENTER", X = 0, Y = 0 },
+                Leader = { Enable = false, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
+                Assistant = { Enable = false, Size = 16, Point = "TOPLEFT", X = 2, Y = -2 },
             },
             Buffs = {
                 Enable = false,
