@@ -12,10 +12,18 @@ oUF_MyLayout is a unit frame addon.
 
 ## Download Addon
 
-- [oUF_MyLayout](https://github.com/ktkr3d/oUF_MyLayout)
+- [oUF_MyLayout](https://github.com/ktkr3d/oUF_MyLayout/archive/refs/heads/main.zip)
 
 ## Slash Commands
 
-```text
-/mylayout config
-```
+- Configuration
+
+  ```text
+  /mylayout config
+  ```
+
+- Reset Profile
+
+  ```text
+  /mylayout reset
+  ```
