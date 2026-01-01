@@ -22,6 +22,18 @@ local anchorValues = {
     ["RIGHT"] = "Right",
 }
 
+local iconAnchorPoints = {
+    ["TOPLEFT"] = "Top Left",
+    ["TOP"] = "Top",
+    ["TOPRIGHT"] = "Top Right",
+    ["LEFT"] = "Left",
+    ["CENTER"] = "Center",
+    ["RIGHT"] = "Right",
+    ["BOTTOMLEFT"] = "Bottom Left",
+    ["BOTTOM"] = "Bottom",
+    ["BOTTOMRIGHT"] = "Bottom Right",
+}
+
 local tagValues = {
     ["[perhp]%"] = "Percent (100%)",
     ["[curhp]"] = "Current (1234)",
@@ -43,6 +55,43 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
     local config = ns.Config.Units[key]
     xIndex = xIndex or 2
     yIndex = yIndex or 3
+
+    local function CreateIconSettings(iconKey, iconName, order)
+        -- アイコン設定が存在しない場合に備えて空のテーブルで初期化
+        if not config.Icons then config.Icons = {} end
+        if not config.Icons[iconKey] then config.Icons[iconKey] = {} end
+
+        return {
+            type = "group", name = iconName, order = order, inline = true,
+            args = {
+                enable = {
+                    type = "toggle", name = "Enable", order = 1,
+                    get = function() return config.Icons[iconKey].Enable end,
+                    set = function(_, val) config.Icons[iconKey].Enable = val; ns.UpdateFrames() end,
+                },
+                size = {
+                    type = "range", name = "Size", min = 8, max = 64, step = 1, order = 2,
+                    get = function() return config.Icons[iconKey].Size end,
+                    set = function(_, val) config.Icons[iconKey].Size = val; ns.UpdateFrames() end,
+                },
+                point = {
+                    type = "select", name = "Anchor Point", values = iconAnchorPoints, order = 3,
+                    get = function() return config.Icons[iconKey].Point end,
+                    set = function(_, val) config.Icons[iconKey].Point = val; ns.UpdateFrames() end,
+                },
+                x = {
+                    type = "range", name = "X Offset", min = -100, max = 100, step = 1, order = 4,
+                    get = function() return config.Icons[iconKey].X end,
+                    set = function(_, val) config.Icons[iconKey].X = val; ns.UpdateFrames() end,
+                },
+                y = {
+                    type = "range", name = "Y Offset", min = -100, max = 100, step = 1, order = 5,
+                    get = function() return config.Icons[iconKey].Y end,
+                    set = function(_, val) config.Icons[iconKey].Y = val; ns.UpdateFrames() end,
+                },
+            }
+        }
+    end
 
     local args = {
         general = {
@@ -236,6 +285,16 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
                 },
             }
         },
+        icons = {
+            type = "group", name = "Icons", order = 60,
+            args = {
+                RaidTarget = CreateIconSettings("RaidTarget", "Raid Target", 1),
+                GroupRole = CreateIconSettings("GroupRole", "Group Role", 2),
+                ReadyCheck = CreateIconSettings("ReadyCheck", "Ready Check", 3),
+                Leader = CreateIconSettings("Leader", "Leader", 4),
+                Assistant = CreateIconSettings("Assistant", "Assistant", 5),
+            }
+        },
     }
 
     if hasNameTag then
@@ -304,6 +363,11 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
                 }
             }
         }
+    end
+
+    if key == "Player" then
+        args.icons.args.Resting = CreateIconSettings("Resting", "Resting", 10)
+        args.icons.args.Combat = CreateIconSettings("Combat", "Combat", 11)
     end
 
     return {

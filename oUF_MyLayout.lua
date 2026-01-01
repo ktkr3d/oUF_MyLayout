@@ -220,6 +220,31 @@ local function UpdateUnitFrame(self, isInit)
             self.Debuffs:Hide()
         end
     end
+
+    local iConfig = uConfig.Icons or {}
+    local function UpdateIcon(icon, iconConfig)
+        if not icon or not iconConfig then return end
+
+        if iconConfig.Enable then
+            icon:Show()
+            icon:SetSize(iconConfig.Size, iconConfig.Size)
+            icon:ClearAllPoints()
+            -- The parent of the icons is self.Health
+            icon:SetPoint(iconConfig.Point, self.Health, iconConfig.Point, iconConfig.X, iconConfig.Y)
+        else
+            icon:Hide()
+        end
+    end
+
+    UpdateIcon(self.RaidTargetIndicator, iConfig.RaidTarget)
+    UpdateIcon(self.GroupRoleIndicator, iConfig.GroupRole)
+    UpdateIcon(self.ReadyCheckIndicator, iConfig.ReadyCheck)
+    UpdateIcon(self.LeaderIndicator, iConfig.Leader)
+    UpdateIcon(self.AssistantIndicator, iConfig.Assistant)
+    if self.unit == "player" then
+        UpdateIcon(self.RestingIndicator, iConfig.Resting)
+        UpdateIcon(self.CombatIndicator, iConfig.Combat)
+    end
 end
 
 function ns.UpdateFrames()
@@ -503,8 +528,6 @@ local function Shared(self, unit)
     -- 6. Raid Icon (レイドアイコン)
     -- --------------------------------------------------------------------
     local RaidTargetIndicator = Health:CreateTexture(nil, "OVERLAY")
-    RaidTargetIndicator:SetSize(20, 20)
-    RaidTargetIndicator:SetPoint("CENTER", Health, "TOP", 0, 0)
     self.RaidTargetIndicator = RaidTargetIndicator
 
     -- --------------------------------------------------------------------
@@ -547,21 +570,12 @@ local function Shared(self, unit)
     -- 8. Role Icon (ロールアイコン)
     -- --------------------------------------------------------------------
     local GroupRoleIndicator = Health:CreateTexture(nil, "OVERLAY")
-    if unit and unit:match("raid") then
-        GroupRoleIndicator:SetSize(20, 20)
-        GroupRoleIndicator:SetPoint("TOPRIGHT", Health, "TOPRIGHT", 5, 5)
-    else
-        GroupRoleIndicator:SetSize(32, 32)
-        GroupRoleIndicator:SetPoint("TOPRIGHT", Health, "TOPRIGHT", 10, 10)
-    end
     self.GroupRoleIndicator = GroupRoleIndicator
 
     -- --------------------------------------------------------------------
     -- 9. Ready Check Icon (レディチェックアイコン)
     -- --------------------------------------------------------------------
     local ReadyCheckIndicator = Health:CreateTexture(nil, "OVERLAY")
-    ReadyCheckIndicator:SetSize(24, 24)
-    ReadyCheckIndicator:SetPoint("CENTER", Health, "CENTER", 0, 0)
     self.ReadyCheckIndicator = ReadyCheckIndicator
 
     -- --------------------------------------------------------------------
@@ -569,8 +583,6 @@ local function Shared(self, unit)
     -- --------------------------------------------------------------------
     if unit == "player" then
         local RestingIndicator = Health:CreateTexture(nil, "OVERLAY")
-        RestingIndicator:SetSize(32, 32)
-        RestingIndicator:SetPoint("TOPLEFT", Health, "TOPLEFT", -10, 10)
         RestingIndicator:SetTexture("Interface\\CharacterFrame\\UI-StateIcon")
         RestingIndicator:SetTexCoord(0, 0.5, 0, 0.421875)
         self.RestingIndicator = RestingIndicator
@@ -581,8 +593,6 @@ local function Shared(self, unit)
     -- --------------------------------------------------------------------
     if unit == "player" then
         local CombatIndicator = Health:CreateTexture(nil, "OVERLAY")
-        CombatIndicator:SetSize(32, 32)
-        CombatIndicator:SetPoint("BOTTOMLEFT", Health, "BOTTOMLEFT", -10, -10)
         CombatIndicator:SetTexture("Interface\\CharacterFrame\\UI-StateIcon")
         CombatIndicator:SetTexCoord(0.5, 1, 0, 0.5)
         self.CombatIndicator = CombatIndicator
@@ -663,13 +673,6 @@ local function Shared(self, unit)
     -- --------------------------------------------------------------------
     local LeaderIndicator = Health:CreateTexture(nil, "OVERLAY")
     LeaderIndicator:SetTexture("Interface\\GroupFrame\\UI-Group-LeaderIcon")
-    if unit and unit:match("raid") then
-        LeaderIndicator:SetSize(20, 20)
-        LeaderIndicator:SetPoint("TOPLEFT", Health, "TOPLEFT", -5, 5)
-    else
-        LeaderIndicator:SetSize(32, 32)
-        LeaderIndicator:SetPoint("TOPLEFT", Health, "TOPLEFT", -10, 10)
-    end
     self.LeaderIndicator = LeaderIndicator
 
     -- --------------------------------------------------------------------
@@ -677,13 +680,6 @@ local function Shared(self, unit)
     -- --------------------------------------------------------------------
     local AssistantIndicator = Health:CreateTexture(nil, "OVERLAY")
     AssistantIndicator:SetTexture("Interface\\GroupFrame\\UI-Group-AssistantIcon")
-    if unit and unit:match("raid") then
-        AssistantIndicator:SetSize(12, 12)
-        AssistantIndicator:SetPoint("TOPLEFT", Health, "TOPLEFT", 2, -2)
-    else
-        AssistantIndicator:SetSize(16, 16)
-        AssistantIndicator:SetPoint("TOPLEFT", Health, "TOPLEFT", 2, -2)
-    end
     self.AssistantIndicator = AssistantIndicator
 
     -- --------------------------------------------------------------------
