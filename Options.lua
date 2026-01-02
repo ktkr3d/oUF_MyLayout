@@ -45,7 +45,7 @@ local tagValues = {
 local nameTagValues = {
     ["[name]"] = "Name",
     ["[raidcolor][name]"] = "Colored Name",
-    ["[level] [name]"] = "Level Name",
+    ["[level] [raidcolor][name]"] = "Level Name",
     ["[difficulty][level][shortclassification] [name]"] = "Full Level Name",
     ["[raidcolor][name] [dead][offline][my:afk]"] = "Name + Status",
     ["[name] [dead][offline]"] = "Name + Dead/Offline",
@@ -320,37 +320,59 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
         },
     }
 
-    if hasNameTag then
-        args.general.args.nameTag = {
-            type = "select", name = "Name Format", values = nameTagValues, order = 6,
-            get = function() return config.NameTag end,
-            set = function(_, val) config.NameTag = val; ns.UpdateFrames() end,
+    if hasNameTag or config.NameText then
+        args.name = {
+            type = "group", name = "Name Text", order = 15,
+            args = {}
         }
-    end
-    
-    if config.NameText then
-        args.general.args.nameText = {
-            type = "group", name = "Name Font", inline = true, order = 7,
-            args = {
-                font = {
-                    type = "select", name = "Font", order = 1,
-                    values = function() return GetLSMList("font") end,
-                    get = function() return config.NameText.Font or ns.Config.Media.Font end,
-                    set = function(_, val) config.NameText.Font = val; ns.UpdateFrames() end,
-                },
-                size = {
-                    type = "range", name = "Size", min = 8, max = 32, step = 1, order = 2,
-                    get = function() return config.NameText.Size end,
-                    set = function(_, val) config.NameText.Size = val; ns.UpdateFrames() end,
-                },
-                outline = {
-                    type = "select", name = "Outline", order = 3,
-                    values = { ["NONE"] = "None", ["OUTLINE"] = "Outline", ["THICKOUTLINE"] = "Thick Outline" },
-                    get = function() return config.NameText.Outline end,
-                    set = function(_, val) config.NameText.Outline = val; ns.UpdateFrames() end,
-                },
+
+        if hasNameTag then
+            args.name.args.tag = {
+                type = "select", name = "Name Format", values = nameTagValues, order = 1,
+                get = function() return config.NameTag end,
+                set = function(_, val) config.NameTag = val; ns.UpdateFrames() end,
             }
-        }
+        end
+
+        if config.NameText then
+            args.name.args.enable = {
+                type = "toggle", name = "Enable", order = 0,
+                get = function() return config.NameText.Enable ~= false end,
+                set = function(_, val) config.NameText.Enable = val; ns.UpdateFrames() end,
+            }
+            args.name.args.font = {
+                type = "select", name = "Font", order = 2,
+                values = function() return GetLSMList("font") end,
+                get = function() return config.NameText.Font or ns.Config.Media.Font end,
+                set = function(_, val) config.NameText.Font = val; ns.UpdateFrames() end,
+            }
+            args.name.args.size = {
+                type = "range", name = "Size", min = 8, max = 32, step = 1, order = 3,
+                get = function() return config.NameText.Size end,
+                set = function(_, val) config.NameText.Size = val; ns.UpdateFrames() end,
+            }
+            args.name.args.outline = {
+                type = "select", name = "Outline", order = 4,
+                values = { ["NONE"] = "None", ["OUTLINE"] = "Outline", ["THICKOUTLINE"] = "Thick Outline" },
+                get = function() return config.NameText.Outline end,
+                set = function(_, val) config.NameText.Outline = val; ns.UpdateFrames() end,
+            }
+            args.name.args.point = {
+                type = "select", name = "Anchor Point", values = iconAnchorPoints, order = 5,
+                get = function() return config.NameText.Point end,
+                set = function(_, val) config.NameText.Point = val; ns.UpdateFrames() end,
+            }
+            args.name.args.x = {
+                type = "range", name = "X Offset", min = -100, max = 100, step = 1, order = 6,
+                get = function() return config.NameText.X or 0 end,
+                set = function(_, val) config.NameText.X = val; ns.UpdateFrames() end,
+            }
+            args.name.args.y = {
+                type = "range", name = "Y Offset", min = -100, max = 100, step = 1, order = 7,
+                get = function() return config.NameText.Y or 0 end,
+                set = function(_, val) config.NameText.Y = val; ns.UpdateFrames() end,
+            }
+        end
     end
 
     if hasCastbar then
@@ -545,7 +567,7 @@ ns.SetupOptions = function()
                     },
                 },
             },
-            player = CreateUnitGroup("Player", "Player Frame", 20, true, false),
+            player = CreateUnitGroup("Player", "Player Frame", 20, true, true),
             target = CreateUnitGroup("Target", "Target Frame", 21, true, true),
             pet = CreateUnitGroup("Pet", "Pet Frame", 22, true, true),
             party = CreateUnitGroup("Party", "Party Frame", 23, true, true),

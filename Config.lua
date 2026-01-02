@@ -31,10 +31,14 @@ ns.Config = {
             HideHealthTextAtFull = true,
             ShowStatusText = true,
             HealthTag = "[my:perhp]%",
+            NameTag = "[raidcolor][name]",
             NameText = {
                 Font = nil, -- nilの場合はMedia.Fontを使用
                 Size = 20,
                 Outline = "OUTLINE",
+                Point = "LEFT",
+                Y = -45,
+                Enable = false
             },
             HealthText = {
                 Font = nil,
@@ -102,10 +106,12 @@ ns.Config = {
             HideHealthTextAtFull = true,
             ShowStatusText = true,
             HealthTag = "[my:perhp]%",
-            NameTag = "[raidcolor][name]",
+            NameTag = "[level] [raidcolor][name]",
             NameText = {
                 Size = 20,
                 Outline = "OUTLINE",
+                Point = "LEFT",
+                Y = -45,
             },
             HealthText = {
                 Size = 24,
@@ -167,10 +173,12 @@ ns.Config = {
             PowerHeight = 10,
             PowerBarTexture = nil,
             HealthBarTexture = nil,
-            NameTag = "[raidcolor][name] [dead][offline]",
+            NameTag = "[raidcolor][name]",
             NameText = {
                 Size = 20,
                 Outline = "OUTLINE",
+                Point = "BOTTOM",
+                Y = -25,
             },
             HealthText = {
                 Size = 24,
@@ -239,6 +247,8 @@ ns.Config = {
             NameText = {
                 Size = 20,
                 Outline = "OUTLINE",
+                Point = "LEFT",
+                Y = -45,
             },
             HealthText = {
                 Size = 20,
@@ -356,11 +366,11 @@ ns.Config = {
             HealthTag = "[my:perhp]%",
             NameTag = "[raidcolor][name] [dead][offline]",
             NameText = {
-                Size = 20,
+                Size = 16,
                 Outline = "OUTLINE",
             },
             HealthText = {
-                Size = 20,
+                Size = 16,
                 Outline = "OUTLINE",
                 Point = "RIGHT",
                 X = 0,
@@ -409,11 +419,11 @@ ns.Config = {
             HealthTag = "[my:perhp]%",
             NameTag = "[raidcolor][name]",
             NameText = {
-                Size = 12,
+                Size = 16,
                 Outline = "OUTLINE",
             },
             HealthText = {
-                Size = 12,
+                Size = 16,
                 Outline = "OUTLINE",
                 Point = "RIGHT",
                 X = 0,
@@ -428,10 +438,10 @@ ns.Config = {
             },
             Icons = {
                 RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
-                GroupRole = { Enable = true, Size = 20, Point = "TOPRIGHT", X = 5, Y = 5 },
+                GroupRole = { Enable = true, Size = 20, Point = "TOPRIGHT", X = 10, Y = 10 },
                 ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
-                Leader = { Enable = true, Size = 20, Point = "TOPLEFT", X = -5, Y = 5 },
-                Assistant = { Enable = true, Size = 12, Point = "TOPLEFT", X = 2, Y = -2 },
+                Leader = { Enable = true, Size = 20, Point = "TOPLEFT", X = -10, Y = 10 },
+                Assistant = { Enable = true, Size = 20, Point = "TOPLEFT", X = -10, Y = 10 },
             },
             Buffs = {
                 Enable = false,
@@ -447,7 +457,7 @@ ns.Config = {
                 Y = 20,
                 PlayerOnly = false,
             },
-            Position = {"TOPLEFT", 50, -350},
+            Position = {"RIGHT", -200, -300},
         },
         -- デフォルト (上記以外)
         Default = {
