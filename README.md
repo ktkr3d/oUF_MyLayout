@@ -16,6 +16,12 @@ oUF_MyLayout is a unit frame addon.
 
 ## Configuration
 
-```text
-/mylayout config
-```
+- Slash Command
+
+  ```text
+  /mylayout config
+  ```
+
+- Option Menu
+
+  <kbd>Esc</kbd> > Options > AddOns > oUF_MyLayout
