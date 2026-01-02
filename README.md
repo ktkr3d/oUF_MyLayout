@@ -10,20 +10,12 @@ oUF_MyLayout is a unit frame addon.
 - [LibSharedMedia-3.0](https://www.curseforge.com/wow/addons/libsharedmedia-3-0)
 - [oUF](https://www.curseforge.com/wow/addons/ouf)
 
-## Download Addon
+## Download
 
 - [oUF_MyLayout](https://github.com/ktkr3d/oUF_MyLayout/archive/refs/heads/main.zip)
 
-## Slash Commands
+## Configuration
 
-- Configuration
-
-  ```text
-  /mylayout config
-  ```
-
-- Reset Profile
-
-  ```text
-  /mylayout reset
-  ```
+```text
+/mylayout config
+```
