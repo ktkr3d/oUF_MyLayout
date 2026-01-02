@@ -68,6 +68,7 @@ local function UpdateUnitFrame(self, isInit)
     elseif unit and unit:match("boss") then uConfig = C.Units.Boss
     elseif unit == "player" then uConfig = C.Units.Player
     elseif unit == "target" then uConfig = C.Units.Target
+    elseif unit == "focus" then uConfig = C.Units.Focus
     end
 
     local fontMain = GetMedia("font", C.Media.Font)
@@ -309,6 +310,8 @@ local function UpdateUnitFrame(self, isInit)
     UpdateIcon(self.GroupRoleIndicator, "GroupRole")
     UpdateIcon(self.ReadyCheckIndicator, "ReadyCheck")
     UpdateIcon(self.LeaderIndicator, "Leader")
+
+
     UpdateIcon(self.AssistantIndicator, "Assistant")
     if self.unit == "player" then
         UpdateIcon(self.RestingIndicator, "Resting")
@@ -347,6 +350,16 @@ function ns.UpdateFrames()
                 ns.pet:SetPoint(unpack(C.Units.Pet.Position))
             else
                 ns.pet:Hide()
+            end
+        end
+        -- Focus
+        if ns.focus then
+            if C.Units.Focus.Enable then
+                ns.focus:Show()
+                ns.focus:ClearAllPoints()
+                ns.focus:SetPoint(unpack(C.Units.Focus.Position))
+            else
+                ns.focus:Hide()
             end
         end
         -- Party
@@ -435,9 +448,6 @@ local function CreateFrames(self)
     -- ペットフレームの生成と配置
     ns.pet = self:Spawn("pet")
 
-    -- フォーカスフレームなども同様に追加可能
-    -- self:Spawn("focus"):SetPoint("CENTER", 0, -100)
-
     -- パーティフレームの生成 (条件付き)
     if C.Units.Party.Enable then
         ns.party = self:SpawnHeader(nil, nil, "custom [group:party, nogroup:raid] show; hide",
@@ -472,6 +482,13 @@ local function CreateFrames(self)
         "yOffset", -10
     )
 end
+
+
+-- スタイルを登録
+-- oUF:RegisterStyle("MyLayout", Shared)
+-- フレームを生成
+-- oUF:Factory(CreateFrames)
+
 
 local Loader = CreateFrame("Frame")
 Loader:RegisterEvent("ADDON_LOADED")
@@ -894,8 +911,10 @@ oUF:Factory(function(self)
     -- ペットフレームの生成と配置
     ns.pet = self:Spawn("pet")
 
-    -- フォーカスフレームなども同様に追加可能
-    -- self:Spawn("focus"):SetPoint("CENTER", 0, -100)
+    -- フォーカスフレームの生成
+    if C.Units.Focus.Enable then
+        ns.focus = self:Spawn("focus")
+    end
 
     -- パーティフレームの生成
     ns.party = self:SpawnHeader(nil, nil, "custom [group:party, nogroup:raid] show; hide",
