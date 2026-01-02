@@ -35,6 +35,7 @@ local iconAnchorPoints = {
 }
 
 local tagValues = {
+    [""] = "None",
     ["[perhp]%"] = "Percent (100%)",
     ["[my:perhp]%"] = "Percent (100.0%)",
     ["[curhp]"] = "Current (1234)",

@@ -59,13 +59,14 @@ end
 local function UpdateUnitFrame(self, isInit)
     local unit = self.unit
     local C = ns.Config
+    local name = self:GetName()
     
     local uConfig = C.Units.Default
     if unit == "pet" then uConfig = C.Units.Pet
-    elseif self:GetName() and self:GetName():match("oUF_MyLayoutMainTank") then uConfig = C.Units.MainTank
-    elseif unit and unit:match("raid") then uConfig = C.Units.Raid
-    elseif unit and unit:match("party") then uConfig = C.Units.Party
-    elseif unit and unit:match("boss") then uConfig = C.Units.Boss
+    elseif name and name:match("oUF_MyLayoutMainTank") then uConfig = C.Units.MainTank
+    elseif name and name:match("oUF_MyLayoutRaid") then uConfig = C.Units.Raid
+    elseif name and name:match("oUF_MyLayoutParty") then uConfig = C.Units.Party
+    elseif name and name:match("oUF_MyLayoutBoss") then uConfig = C.Units.Boss
     elseif unit == "player" then uConfig = C.Units.Player
     elseif unit == "target" then uConfig = C.Units.Target
     elseif unit == "targettarget" then uConfig = C.Units.TargetTarget
@@ -271,11 +272,12 @@ local function UpdateUnitFrame(self, isInit)
     -- アイコンの更新
     local iConfig = uConfig.Icons or {}
     local unitKey
+    local name = self:GetName()
     if self.unit == "pet" then unitKey = "Pet"
-    elseif self:GetName() and self:GetName():match("oUF_MyLayoutMainTank") then unitKey = "MainTank"
-    elseif self.unit and self.unit:match("raid") then unitKey = "Raid"
-    elseif self.unit and self.unit:match("party") then unitKey = "Party"
-    elseif self.unit and self.unit:match("boss") then unitKey = "Boss"
+    elseif name and name:match("oUF_MyLayoutMainTank") then unitKey = "MainTank"
+    elseif name and name:match("oUF_MyLayoutRaid") then unitKey = "Raid"
+    elseif name and name:match("oUF_MyLayoutParty") then unitKey = "Party"
+    elseif name and name:match("oUF_MyLayoutBoss") then unitKey = "Boss"
     elseif self.unit == "player" then unitKey = "Player"
     elseif self.unit == "targettarget" then unitKey = "TargetTarget"
     elseif self.unit == "target" then unitKey = "Target"
@@ -604,11 +606,12 @@ local function Shared(self, unit)
 
         local C = ns.Config
         local uConfig = C.Units.Default
+        local name = parent:GetName()
         if parent.unit == "pet" then uConfig = C.Units.Pet
-        elseif parent:GetName() and parent:GetName():match("oUF_MyLayoutMainTank") then uConfig = C.Units.MainTank
-        elseif parent.unit and parent.unit:match("raid") then uConfig = C.Units.Raid
-        elseif parent.unit and parent.unit:match("party") then uConfig = C.Units.Party
-        elseif parent.unit and parent.unit:match("boss") then uConfig = C.Units.Boss
+        elseif name and name:match("oUF_MyLayoutMainTank") then uConfig = C.Units.MainTank
+        elseif name and name:match("oUF_MyLayoutRaid") then uConfig = C.Units.Raid
+        elseif name and name:match("oUF_MyLayoutParty") then uConfig = C.Units.Party
+        elseif name and name:match("oUF_MyLayoutBoss") then uConfig = C.Units.Boss
         elseif parent.unit == "player" then uConfig = C.Units.Player
         elseif parent.unit == "target" then uConfig = C.Units.Target
         elseif parent.unit == "targettarget" then uConfig = C.Units.TargetTarget
@@ -666,16 +669,17 @@ local function Shared(self, unit)
     -- 名前
     do
         local Name = Health:CreateFontString(nil, "OVERLAY")
+        local name = self:GetName()
         if unit == "pet" then
             --[[
             Name:SetPoint("BOTTOM", Health, "BOTTOM", 0, -25)
             Name:SetTextColor(1, 1, 1) -- 白色
             self:Tag(Name, "[name] [dead][offline]")
             ]]
-        elseif unit and unit:match("raid") then
+        elseif name and name:match("oUF_MyLayoutRaid") then
             Name:SetPoint("CENTER", Health, "CENTER", 0, 0)
             self:Tag(Name, "[raidcolor][name] [dead][offline][my:afk]")
-        elseif unit and unit:match("boss") then
+        elseif name and name:match("oUF_MyLayoutBoss") then
             Name:SetPoint("LEFT", Health, "LEFT", 5, 0)
             self:Tag(Name, "[raidcolor][name] [dead][offline]")
         else
@@ -697,7 +701,8 @@ local function Shared(self, unit)
     end
 
     -- HP数値
-    if unit ~= "pet" and not (unit and unit:match("raid")) then
+    local name = self:GetName()
+    if unit ~= "pet" and not (name and name:match("oUF_MyLayoutRaid")) then
         local HpVal = Health:CreateFontString(nil, "OVERLAY")
         -- 位置はUpdateUnitFrameで設定
         if unit == "player" then
@@ -733,7 +738,8 @@ local function Shared(self, unit)
     -- --------------------------------------------------------------------
     -- 7. Castbar (詠唱バー)
     -- --------------------------------------------------------------------
-    if not (unit and (unit:match("raid") or unit:match("boss") or unit == "targettarget")) then
+    local name = self:GetName()
+    if not (name and (name:match("oUF_MyLayoutRaid") or name:match("oUF_MyLayoutBoss"))) and unit ~= "targettarget" then
         local Castbar = CreateFrame("StatusBar", nil, self)
 
         local CastbarBg = Castbar:CreateTexture(nil, "BACKGROUND")
@@ -932,13 +938,13 @@ oUF:Factory(function(self)
     ns.focus = self:Spawn("focus")
 
     -- パーティフレームの生成
-    ns.party = self:SpawnHeader(nil, nil, "custom [group:party, nogroup:raid] show; hide",
+    ns.party = self:SpawnHeader("oUF_MyLayoutParty", nil, "custom [group:party, nogroup:raid] show; hide",
         "showParty", true,
         "yOffset", -60 -- 垂直方向に並べる
     )
 
     -- レイドフレームの生成
-    ns.raid = self:SpawnHeader(nil, nil, "custom [group:raid] show; hide",
+    ns.raid = self:SpawnHeader("oUF_MyLayoutRaid", nil, "custom [group:raid] show; hide",
         "showRaid", true,
         "xOffset", 5,
         "yOffset", -5,
