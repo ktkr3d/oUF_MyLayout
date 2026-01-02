@@ -22,6 +22,6 @@ oUF_MyLayout is a unit frame addon.
   /mylayout config
   ```
 
-- Option Menu
+- Game Menu
 
   <kbd>Esc</kbd> > Options > AddOns > oUF_MyLayout
