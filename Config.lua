@@ -13,7 +13,8 @@ ns.Config = {
     Colors = {
         Health = {0.25, 0.25, 0.25},
         HealthBg = {0, 0, 0},
-        PowerBg = {1, 1, 1},
+        Power = {0.25, 0.25, 0.25},
+        PowerBg = {0, 0, 0},
         Castbar = {1, 0.7, 0},
         CastbarBg = {0.2, 0.2, 0.2},
     },
@@ -241,6 +242,7 @@ ns.Config = {
             PowerHeight = 10,
             PowerBarTexture = nil,
             HealthBarTexture = nil,
+            HealthTag = "",
             NameTag = "[raidcolor][name]",
             NameText = {
                 Size = 20,
@@ -304,14 +306,14 @@ ns.Config = {
             Enable = true,
             Width = 184,
             Height = 46,
-            HealthHeight = 25,
+            HealthHeight = 30,
             PowerHeight = 10,
             PowerBarTexture = nil,
             HealthBarTexture = nil,
             HideHealthTextAtFull = true,
             ShowStatusText = true,
             HealthTag = "[my:perhp]%",
-            NameTag = "[raidcolor][name]",
+            NameTag = "[level] [raidcolor][name]",
             NameText = {
                 Size = 20,
                 Outline = "OUTLINE",
@@ -368,7 +370,7 @@ ns.Config = {
                 Y = 35,
                 PlayerOnly = false,
             },
-            Position = {"LEFT", 200, 350},
+            Position = {"LEFT", 200, 150},
         },
         Raid = {
             Enable = true,
@@ -384,6 +386,7 @@ ns.Config = {
             NameText = {
                 Size = 12,
                 Outline = "OUTLINE",
+                Point = "CENTER",
             },
             HealthText = {
                 Size = 12,
@@ -420,7 +423,7 @@ ns.Config = {
                 Y = 20,
                 PlayerOnly = false,
             },
-            Position = {"RIGHT", "UIParent", "RIGHT", -435, -325},
+            Position = {"RIGHT", "UIParent", "RIGHT", -390, -320},
         },
         Boss = {
             Enable = true,
@@ -490,6 +493,7 @@ ns.Config = {
             NameText = {
                 Size = 16,
                 Outline = "OUTLINE",
+                Point = "CENTER",
             },
             HealthText = {
                 Size = 16,
@@ -526,7 +530,7 @@ ns.Config = {
                 Y = 20,
                 PlayerOnly = false,
             },
-            Position = {"RIGHT", -200, -300},
+            Position = {"RIGHT", -10, -260},
         },
         -- デフォルト (上記以外)
         Default = {

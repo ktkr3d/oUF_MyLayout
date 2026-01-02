@@ -3,6 +3,20 @@
 -- oUFオブジェクトを取得（グローバルまたはネームスペースから）
 local oUF = ns.oUF or oUF
 
+local function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in pairs(orig) do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
 -- カスタムタグ: AFK (赤色で表示)
 oUF.Tags.Methods["my:afk"] = function(unit)
     if UnitIsAFK(unit) then
@@ -60,7 +74,7 @@ local function UpdateUnitFrame(self, isInit)
     local unit = self.unit
     local C = ns.Config
     local name = self:GetName()
-    
+
     local uConfig = C.Units.Default
     if unit == "pet" then uConfig = C.Units.Pet
     elseif name and name:match("oUF_MyLayoutMainTank") then uConfig = C.Units.MainTank
@@ -89,6 +103,7 @@ local function UpdateUnitFrame(self, isInit)
         self.Power:SetHeight(uConfig.PowerHeight or 10)
         local texturePower = GetMedia("statusbar", uConfig.PowerBarTexture or C.Media.PowerBar)
         self.Power:SetStatusBarTexture(texturePower)
+        -- self.Power:SetStatusBarColor(unpack(C.Colors.Power))
         if self.Power.bg then self.Power.bg:SetColorTexture(unpack(C.Colors.PowerBg)) end
     end
 
@@ -189,7 +204,7 @@ local function UpdateUnitFrame(self, isInit)
             self.Castbar:SetStatusBarTexture(textureBar)
             self.Castbar:SetStatusBarColor(unpack(C.Colors.Castbar))
             if self.Castbar.bg then self.Castbar.bg:SetColorTexture(unpack(C.Colors.CastbarBg)) end
-            
+
             local cbtConfig = uConfig.CastbarText or {}
             local cbFont = GetMedia("font", cbtConfig.Font or C.Media.Font)
             local cbSize = cbtConfig.Size or 12
@@ -210,7 +225,7 @@ local function UpdateUnitFrame(self, isInit)
             self.Portrait = self.PortraitModel
             self.Portrait:Show()
             if self.PortraitBg then self.PortraitBg:Show() end
-            
+
             self.Portrait:SetSize(pConfig.Width or 150, pConfig.Height or 43)
             self.Portrait:ClearAllPoints()
             self.Portrait:SetPoint("LEFT", self, "LEFT", pConfig.X or 2, pConfig.Y or 0)
@@ -407,7 +422,7 @@ function ns.UpdateFrames()
                         if i == 1 then
                             ns.boss[i]:SetPoint(unpack(C.Units.Boss.Position))
                         else
-                            ns.boss[i]:SetPoint("TOP", prevBoss, "BOTTOM", 0, -60)
+                            ns.boss[i]:SetPoint("TOP", prevBoss, "BOTTOM", 0, -10)
                         end
                         prevBoss = ns.boss[i]
                     end
@@ -440,6 +455,46 @@ function ns.UpdateFrames()
 end
 
 -- ------------------------------------------------------------------------
+-- Edit Mode Integration
+-- ------------------------------------------------------------------------
+function ns.RegisterWithEditMode(unitKey, frame, displayName, category)
+    if not EditModeManager then return end
+
+    local layoutData = {
+        name = displayName,
+        movable = true,
+        category = category,
+        OnPositionChanged = function(self, x, y)
+            -- The frame is moved, save its new position relative to the center.
+            -- This will overwrite the original anchor point, which is fine.
+            ns.Config.Units[unitKey].Position = {"CENTER", x, y}
+        end,
+        OnReset = function(self)
+            -- Reset to the default position from Config.lua
+            local defaultConfig = ns.Defaults.Units[unitKey]
+            if defaultConfig and defaultConfig.Position then
+                -- Use deepcopy to avoid modifying the defaults table
+                ns.Config.Units[unitKey].Position = deepcopy(defaultConfig.Position)
+                ns.UpdateFrames() -- This will re-apply positions for all frames
+            end
+        end,
+        options = {
+            {
+                type = "toggle",
+                name = "Enable",
+                get = function() return ns.Config.Units[unitKey].Enable end,
+                set = function(info, val)
+                    ns.Config.Units[unitKey].Enable = val
+                    ns.UpdateFrames()
+                end
+            }
+        }
+    }
+
+    EditModeManager:RegisterFrame(frame, layoutData)
+end
+
+-- ------------------------------------------------------------------------
 -- 設定の初期化 (SavedVariables)
 -- ------------------------------------------------------------------------
 function ns:OnProfileChanged(event, database, newProfileKey)
@@ -448,61 +503,6 @@ function ns:OnProfileChanged(event, database, newProfileKey)
     -- フレームの見た目を更新
     ns.UpdateFrames()
 end
-
-local function CreateFrames(self)
-    local C = ns.Config
-    self:SetActiveStyle("MyLayout")
-
-    -- プレイヤーフレームの生成と配置
-    ns.player = self:Spawn("player")
-
-    -- ターゲットフレームの生成と配置
-    ns.target = self:Spawn("target")
-    
-    -- ペットフレームの生成と配置
-    ns.pet = self:Spawn("pet")
-
-    -- パーティフレームの生成 (条件付き)
-    if C.Units.Party.Enable then
-        ns.party = self:SpawnHeader(nil, nil, "custom [group:party, nogroup:raid] show; hide",
-            "showParty", true,
-            "yOffset", -60 -- 垂直方向に並べる
-        )
-    end
-
-    -- レイドフレームの生成 (条件付き)
-    if C.Units.Raid.Enable then
-        ns.raid = self:SpawnHeader(nil, nil, "custom [group:raid] show; hide",
-            "showRaid", true,
-            "groupBy", "GROUP",
-            "groupingOrder", "1,2,3,4,5,6,7,8",
-            "maxColumns", 5,
-            "unitsPerColumn", 5,
-            "columnSpacing", 5,
-            "point", "TOPLEFT"
-        )
-    end
-
-    -- ボスフレームの生成 (Boss1 - Boss5)
-    ns.boss = {}
-    for i = 1, 5 do
-        ns.boss[i] = self:Spawn("boss" .. i)
-    end
-
-    -- メインタンクフレームの生成
-    ns.maintank = self:SpawnHeader("oUF_MyLayoutMainTank", nil, "custom [group:raid] show; hide",
-        "showRaid", true,
-        "groupFilter", "MAINTANK",
-        "yOffset", -10
-    )
-end
-
-
--- スタイルを登録
--- oUF:RegisterStyle("MyLayout", Shared)
--- フレームを生成
--- oUF:Factory(CreateFrames)
-
 
 local Loader = CreateFrame("Frame")
 Loader:RegisterEvent("ADDON_LOADED")
@@ -534,14 +534,9 @@ Loader:SetScript("OnEvent", function(self, event, addon)
     -- 現在のプロファイルを ns.Config にセット
     ns.Config = ns.db.profile -- ns.Config now points to the live profile
 
-    -- スタイルを登録
-    -- oUF:RegisterStyle("MyLayout", Shared)
-    -- フレームを生成
-    -- oUF:Factory(CreateFrames)
-
     -- 保存された設定を適用するためにフレームを更新
     ns.UpdateFrames()
-    
+
     -- 設定画面の初期化
     if ns.SetupOptions then ns.SetupOptions() end
 
@@ -571,7 +566,7 @@ local function Shared(self, unit)
     self:RegisterForClicks("AnyUp")
     self:SetScript("OnEnter", UnitFrame_OnEnter)
     self:SetScript("OnLeave", UnitFrame_OnLeave)
-    
+
     -- 初期化用にunitをセット
     self.unit = unit
     local C = ns.Config
@@ -601,10 +596,20 @@ local function Shared(self, unit)
     Health.bg = HealthBg
 
     Health.PostUpdate = function(health, unit, min, max)
+        local C = ns.Config
+        if health.bg then health.bg:SetColorTexture(unpack(C.Colors.HealthBg)) end
+
+        -- 前景色（HPバーの色）を適用
+        -- Tapping(権利なし)やDisconnected(オフライン)の場合はoUFが色を設定しているので上書きしない
+        local isTapped = health.colorTapping and not UnitPlayerControlled(unit) and UnitIsTapDenied(unit)
+        local isDisconnected = health.colorDisconnected and not UnitIsConnected(unit)
+        if not isTapped and not isDisconnected then
+            health:SetStatusBarColor(unpack(C.Colors.Health))
+        end
+
         local parent = health:GetParent()
         if not parent.HpVal then return end
 
-        local C = ns.Config
         local uConfig = C.Units.Default
         local name = parent:GetName()
         if parent.unit == "pet" then uConfig = C.Units.Pet
@@ -620,12 +625,12 @@ local function Shared(self, unit)
 
         local isFull = (min == max)
         local shouldHideHealth = uConfig.HideHealthTextAtFull and isFull
-        
+
         local tag = uConfig.HealthTag or "[perhp]%"
         if shouldHideHealth then
             tag = ""
         end
-        
+
         if uConfig.ShowStatusText then
             if tag ~= "" then
                 tag = tag .. " [dead][offline][my:afk]"
@@ -633,13 +638,13 @@ local function Shared(self, unit)
                 tag = "[dead][offline][my:afk]"
             end
         end
-        
+
         if parent.HpVal.__currentTag ~= tag then
             parent:Tag(parent.HpVal, tag)
             parent.HpVal.__currentTag = tag
             parent.HpVal:UpdateTag()
         end
-        
+
         parent.HpVal:Show()
     end
 
@@ -655,11 +660,15 @@ local function Shared(self, unit)
 
     local PowerBg = Power:CreateTexture(nil, "BACKGROUND")
     PowerBg:SetAllPoints(true)
-    PowerBg.multiplier = 0.2
 
     Power.colorClass = true -- クラスカラー
     Power.bg = PowerBg
-
+    
+    Power.PostUpdate = function(power, unit, min, max)
+        local C = ns.Config
+        if power.bg then power.bg:SetColorTexture(unpack(C.Colors.PowerBg)) end
+    end
+    
     -- oUFに登録
     self.Power = Power
 
@@ -667,51 +676,12 @@ local function Shared(self, unit)
     -- 4. テキスト情報 (名前とHP値)
     -- --------------------------------------------------------------------
     -- 名前
-    do
-        local Name = Health:CreateFontString(nil, "OVERLAY")
-        local name = self:GetName()
-        if unit == "pet" then
-            --[[
-            Name:SetPoint("BOTTOM", Health, "BOTTOM", 0, -25)
-            Name:SetTextColor(1, 1, 1) -- 白色
-            self:Tag(Name, "[name] [dead][offline]")
-            ]]
-        elseif name and name:match("oUF_MyLayoutRaid") then
-            Name:SetPoint("CENTER", Health, "CENTER", 0, 0)
-            self:Tag(Name, "[raidcolor][name] [dead][offline][my:afk]")
-        elseif name and name:match("oUF_MyLayoutBoss") then
-            Name:SetPoint("LEFT", Health, "LEFT", 5, 0)
-            self:Tag(Name, "[raidcolor][name] [dead][offline]")
-        else
-            --[[
-            if unit == "target" then
-                local Level = Health:CreateFontString(nil, "OVERLAY")
-                Level:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, 0)
-                self:Tag(Level, "[difficulty][level][shortclassification]")
-                Name:SetPoint("LEFT", Level, "RIGHT", 5, 0)
-                self.Level = Level
-            else
-                Name:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, 0)
-            end
-
-            self:Tag(Name, "[raidcolor][name] [dead][offline][my:afk]")
-            ]]
-        end
-        self.Name = Name
-    end
+    local Name = Health:CreateFontString(nil, "OVERLAY")
+    self.Name = Name
 
     -- HP数値
-    local name = self:GetName()
-    if unit ~= "pet" and not (name and name:match("oUF_MyLayoutRaid")) then
-        local HpVal = Health:CreateFontString(nil, "OVERLAY")
-        -- 位置はUpdateUnitFrameで設定
-        if unit == "player" then
-            self:Tag(HpVal, "[perhp]% [dead][offline][my:afk]")
-        else
-            self:Tag(HpVal, "[perhp]%") -- パーセント表示
-        end
-        self.HpVal = HpVal
-    end
+    local HpVal = Health:CreateFontString(nil, "OVERLAY")
+    self.HpVal = HpVal
 
     -- --------------------------------------------------------------------
     -- 5. Portrait (3Dモデル)
@@ -748,7 +718,7 @@ local function Shared(self, unit)
         -- 呪文名
         local CastbarText = Castbar:CreateFontString(nil, "OVERLAY")
         CastbarText:SetPoint("LEFT", Castbar, "LEFT", 2, 0)
-        
+
         -- アイコン
         local CastbarIcon = Castbar:CreateTexture(nil, "OVERLAY")
         CastbarIcon:SetSize(20, 20)
@@ -764,6 +734,13 @@ local function Shared(self, unit)
         Castbar.Icon = CastbarIcon
         Castbar.Time = CastbarTime
         Castbar.timeToHold = 0.5 -- 完了後に少し表示を残す
+        
+        Castbar.PostCastStart = function(castbar, unit)
+            local C = ns.Config
+            if castbar.bg then castbar.bg:SetColorTexture(unpack(C.Colors.CastbarBg)) end
+        end
+        Castbar.PostCastInterruptible = Castbar.PostCastStart
+        Castbar.PostCastNotInterruptible = Castbar.PostCastStart
 
         self.Castbar = Castbar
         self.CastbarRaw = Castbar
@@ -924,24 +901,30 @@ oUF:Factory(function(self)
 
     -- プレイヤーフレームの生成と配置
     ns.player = self:Spawn("player")
+    ns.RegisterWithEditMode("Player", ns.player, "Player", "Unit Frames")
 
     -- ターゲットフレームの生成と配置
     ns.target = self:Spawn("target")
-    
+    ns.RegisterWithEditMode("Target", ns.target, "Target", "Unit Frames")
+
     -- ターゲットのターゲットフレームの生成
     ns.targettarget = self:Spawn("targettarget")
+    ns.RegisterWithEditMode("TargetTarget", ns.targettarget, "Target's Target", "Unit Frames")
 
     -- ペットフレームの生成と配置
     ns.pet = self:Spawn("pet")
+    ns.RegisterWithEditMode("Pet", ns.pet, "Pet", "Unit Frames")
 
     -- フォーカスフレームの生成
     ns.focus = self:Spawn("focus")
+    ns.RegisterWithEditMode("Focus", ns.focus, "Focus", "Unit Frames")
 
     -- パーティフレームの生成
     ns.party = self:SpawnHeader("oUF_MyLayoutParty", nil, "custom [group:party, nogroup:raid] show; hide",
         "showParty", true,
         "yOffset", -60 -- 垂直方向に並べる
     )
+    ns.RegisterWithEditMode("Party", ns.party, "Party Frames", "Party Frames")
 
     -- レイドフレームの生成
     ns.raid = self:SpawnHeader("oUF_MyLayoutRaid", nil, "custom [group:raid] show; hide",
@@ -955,14 +938,17 @@ oUF:Factory(function(self)
         "maxColumns", 5,
         "unitsPerColumn", 5,
         "columnSpacing", 5,
-        "columnAnchorPoint", "LEFT"
+        "columnAnchorPoint", "LEFT",
+        "sortMethod", "INDEX"
     )
+    ns.RegisterWithEditMode("Raid", ns.raid, "Raid Frames", "Raid Frames")
 
     -- ボスフレームの生成 (Boss1 - Boss5)
     ns.boss = {}
     for i = 1, 5 do
         ns.boss[i] = self:Spawn("boss" .. i)
     end
+    ns.RegisterWithEditMode("Boss", ns.boss[1], "Boss Frames", "Boss Frames")
 
     -- メインタンクフレームの生成
     ns.maintank = self:SpawnHeader("oUF_MyLayoutMainTank", nil, "custom [group:raid] show; hide",
@@ -970,6 +956,7 @@ oUF:Factory(function(self)
         "groupFilter", "MAINTANK",
         "yOffset", -10
     )
+    ns.RegisterWithEditMode("MainTank", ns.maintank, "Main Tank Frames", "Raid Frames")
 
     -- 初期ロード時に一度すべてのフレームを更新して位置と表示状態を確定
     ns.UpdateFrames()
