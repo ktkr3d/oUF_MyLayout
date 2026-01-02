@@ -68,6 +68,7 @@ local function UpdateUnitFrame(self, isInit)
     elseif unit and unit:match("boss") then uConfig = C.Units.Boss
     elseif unit == "player" then uConfig = C.Units.Player
     elseif unit == "target" then uConfig = C.Units.Target
+    elseif unit == "targettarget" then uConfig = C.Units.TargetTarget
     elseif unit == "focus" then uConfig = C.Units.Focus
     end
 
@@ -276,6 +277,7 @@ local function UpdateUnitFrame(self, isInit)
     elseif self.unit and self.unit:match("party") then unitKey = "Party"
     elseif self.unit and self.unit:match("boss") then unitKey = "Boss"
     elseif self.unit == "player" then unitKey = "Player"
+    elseif self.unit == "targettarget" then unitKey = "TargetTarget"
     elseif self.unit == "target" then unitKey = "Target"
     else unitKey = "Default" end
     local defaultIconsConfig = (ns.Defaults.Units[unitKey] and ns.Defaults.Units[unitKey].Icons) or {}
@@ -340,6 +342,16 @@ function ns.UpdateFrames()
                 ns.target:SetPoint(unpack(C.Units.Target.Position))
             else
                 ns.target:Hide()
+            end
+        end
+        -- TargetTarget
+        if ns.targettarget then
+            if C.Units.TargetTarget.Enable then
+                ns.targettarget:Show()
+                ns.targettarget:ClearAllPoints()
+                ns.targettarget:SetPoint(unpack(C.Units.TargetTarget.Position))
+            else
+                ns.targettarget:Hide()
             end
         end
         -- Pet
@@ -599,6 +611,8 @@ local function Shared(self, unit)
         elseif parent.unit and parent.unit:match("boss") then uConfig = C.Units.Boss
         elseif parent.unit == "player" then uConfig = C.Units.Player
         elseif parent.unit == "target" then uConfig = C.Units.Target
+        elseif parent.unit == "targettarget" then uConfig = C.Units.TargetTarget
+        elseif parent.unit == "focus" then uConfig = C.Units.Focus
         end
 
         local isFull = (min == max)
@@ -719,7 +733,7 @@ local function Shared(self, unit)
     -- --------------------------------------------------------------------
     -- 7. Castbar (詠唱バー)
     -- --------------------------------------------------------------------
-    if not (unit and (unit:match("raid") or unit:match("boss"))) then
+    if not (unit and (unit:match("raid") or unit:match("boss") or unit == "targettarget")) then
         local Castbar = CreateFrame("StatusBar", nil, self)
 
         local CastbarBg = Castbar:CreateTexture(nil, "BACKGROUND")
@@ -908,13 +922,14 @@ oUF:Factory(function(self)
     -- ターゲットフレームの生成と配置
     ns.target = self:Spawn("target")
     
+    -- ターゲットのターゲットフレームの生成
+    ns.targettarget = self:Spawn("targettarget")
+
     -- ペットフレームの生成と配置
     ns.pet = self:Spawn("pet")
 
     -- フォーカスフレームの生成
-    if C.Units.Focus.Enable then
-        ns.focus = self:Spawn("focus")
-    end
+    ns.focus = self:Spawn("focus")
 
     -- パーティフレームの生成
     ns.party = self:SpawnHeader(nil, nil, "custom [group:party, nogroup:raid] show; hide",
