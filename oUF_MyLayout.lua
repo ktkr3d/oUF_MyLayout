@@ -1,4 +1,4 @@
-local addonName, ns = ...
+﻿local addonName, ns = ...
 
 -- oUFオブジェクトを取得（グローバルまたはネームスペースから）
 local oUF = ns.oUF or oUF
@@ -10,6 +10,14 @@ oUF.Tags.Methods["my:afk"] = function(unit)
     end
 end
 oUF.Tags.Events["my:afk"] = "PLAYER_FLAGS_CHANGED UNIT_FLAGS"
+
+-- カスタムタグ: HPパーセント (少数第一位)
+oUF.Tags.Methods["my:perhp"] = function(unit)
+    local cur, max = UnitHealth(unit), UnitHealthMax(unit)
+    if max == 0 then return 0 end
+    return string.format("%.1f", cur / max * 100)
+end
+oUF.Tags.Events["my:perhp"] = "UNIT_HEALTH UNIT_MAXHEALTH"
 
 -- ------------------------------------------------------------------------
 -- SharedMediaのサポート
@@ -111,14 +119,6 @@ local function UpdateUnitFrame(self, isInit)
         self.HpVal:ClearAllPoints()
         local point, x, y = hConfig.Point or "RIGHT", hConfig.X or 0, hConfig.Y or 0
         self.HpVal:SetPoint(point, self.Health, point, x, y)
-
-        -- タグの更新
-        local tag = uConfig.HealthTag or "[perhp]%"
-        if unit == "player" then
-            tag = tag .. " [dead][offline][my:afk]"
-        end
-        self:Tag(self.HpVal, tag)
-        self.HpVal:UpdateTag() -- 即座に反映
     end
 
     if self.CastbarRaw then
@@ -411,6 +411,405 @@ function ns:OnProfileChanged(event, database, newProfileKey)
     ns.UpdateFrames()
 end
 
+local function CreateFrames(self)
+    local C = ns.Config
+    self:SetActiveStyle("MyLayout")
+
+    -- プレイヤーフレームの生成と配置
+    ns.player = self:Spawn("player")
+
+    -- ターゲットフレームの生成と配置
+    ns.target = self:Spawn("target")
+    
+    -- ペットフレームの生成と配置
+    ns.pet = self:Spawn("pet")
+
+    -- フォーカスフレームなども同様に追加可能
+    -- self:Spawn("focus"):SetPoint("CENTER", 0, -100)
+
+    -- パーティフレームの生成 (条件付き)
+    if C.Units.Party.Enable then
+        ns.party = self:SpawnHeader(nil, nil, "custom [group:party, nogroup:raid] show; hide",
+            "showParty", true,
+            "yOffset", -60 -- 垂直方向に並べる
+        )
+    end
+
+    -- レイドフレームの生成 (条件付き)
+    if C.Units.Raid.Enable then
+        ns.raid = self:SpawnHeader(nil, nil, "custom [group:raid] show; hide",
+            "showRaid", true,
+            "groupBy", "GROUP",
+            "groupingOrder", "1,2,3,4,5,6,7,8",
+            "maxColumns", 5,
+            "unitsPerColumn", 5,
+            "columnSpacing", 5,
+            "point", "TOPLEFT"
+        )
+    end
+
+    -- ボスフレームの生成 (Boss1 - Boss5)
+    ns.boss = {}
+    for i = 1, 5 do
+        ns.boss[i] = self:Spawn("boss" .. i)
+    end
+
+    -- メインタンクフレームの生成
+    ns.maintank = self:SpawnHeader("oUF_MyLayoutMainTank", nil, "custom [group:raid] show; hide",
+        "showRaid", true,
+        "groupFilter", "MAINTANK",
+        "yOffset", -10
+    )
+end
+
+-- ------------------------------------------------------------------------
+-- スタイル定義関数 (Shared Style Function)
+-- ------------------------------------------------------------------------
+-- この関数内で、各ユニットフレーム（プレイヤー、ターゲット等）の見た目を定義します。
+local function Shared(self, unit)
+    -- 1. フレームの基本設定
+    self:RegisterForClicks("AnyUp")
+    self:SetScript("OnEnter", UnitFrame_OnEnter)
+    self:SetScript("OnLeave", UnitFrame_OnLeave)
+    
+    -- 初期化用にunitをセット
+    self.unit = unit
+    local C = ns.Config
+    local uConfig = C.Units.Default -- 初期構築用に必要
+
+    -- 背景の設定 (オプション)
+    local bg = self:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetColorTexture(0, 0, 0, 1) -- 半透明の黒
+
+    -- --------------------------------------------------------------------
+    -- 2. Health Bar (HPバー) の作成
+    -- --------------------------------------------------------------------
+    local Health = CreateFrame("StatusBar", nil, self)
+    Health:SetPoint("TOPLEFT", self, "TOPLEFT", 2, -2)
+    Health:SetPoint("TOPRIGHT", self, "TOPRIGHT", -2, -2)
+
+    -- HPバーの背景
+    local HealthBg = Health:CreateTexture(nil, "BACKGROUND")
+    HealthBg:SetAllPoints(true)
+
+    -- オプション: クラスカラーや敵対反応カラーを有効化
+    Health.colorTapping = true
+    Health.colorDisconnected = true
+    Health.colorClass = false
+    Health.colorReaction = false
+    Health.bg = HealthBg
+
+    Health.PostUpdate = function(health, unit, min, max)
+        local parent = health:GetParent()
+        if not parent.HpVal then return end
+
+        local C = ns.Config
+        local uConfig = C.Units.Default
+        if parent.unit == "pet" then uConfig = C.Units.Pet
+        elseif parent:GetName() and parent:GetName():match("oUF_MyLayoutMainTank") then uConfig = C.Units.MainTank
+        elseif parent.unit and parent.unit:match("raid") then uConfig = C.Units.Raid
+        elseif parent.unit and parent.unit:match("party") then uConfig = C.Units.Party
+        elseif parent.unit and parent.unit:match("boss") then uConfig = C.Units.Boss
+        elseif parent.unit == "player" then uConfig = C.Units.Player
+        elseif parent.unit == "target" then uConfig = C.Units.Target
+        end
+
+        local isFull = (min == max)
+        local shouldHideHealth = uConfig.HideHealthTextAtFull and isFull
+        
+        local tag = uConfig.HealthTag or "[perhp]%"
+        if shouldHideHealth then
+            tag = ""
+        end
+        
+        if uConfig.ShowStatusText then
+            if tag ~= "" then
+                tag = tag .. " [dead][offline][my:afk]"
+            else
+                tag = "[dead][offline][my:afk]"
+            end
+        end
+
+        if parent.HpVal.__currentTag ~= tag then
+            parent:Tag(parent.HpVal, tag)
+            parent.HpVal.__currentTag = tag
+            parent.HpVal:UpdateTag()
+        end
+        
+        parent.HpVal:Show()
+    end
+
+    -- oUFに登録 (self.Healthに代入することでoUFが自動更新を行う)
+    self.Health = Health
+
+    -- 状態変化時にHPバーの表示更新を強制する (AFKやオフライン時にテキストを表示するため)
+    local function ForceUpdateHealth(self)
+        if self.Health then self.Health:ForceUpdate() end
+    end
+    self:RegisterEvent("PLAYER_FLAGS_CHANGED", ForceUpdateHealth)
+    self:RegisterEvent("UNIT_FLAGS", ForceUpdateHealth)
+    self:RegisterEvent("UNIT_CONNECTION", ForceUpdateHealth)
+
+    -- --------------------------------------------------------------------
+    -- 3. Power Bar (マナ/リソースバー) の作成
+    -- --------------------------------------------------------------------
+    local Power = CreateFrame("StatusBar", nil, self)
+    Power:SetPoint("TOPLEFT", Health, "BOTTOMLEFT", 0, -2)
+    Power:SetPoint("TOPRIGHT", Health, "BOTTOMRIGHT", 0, -2)
+
+    local PowerBg = Power:CreateTexture(nil, "BACKGROUND")
+    PowerBg:SetAllPoints(true)
+    PowerBg.multiplier = 0.2
+
+    Power.colorClass = true -- クラスカラー
+    Power.bg = PowerBg
+
+    -- oUFに登録
+    self.Power = Power
+
+    -- --------------------------------------------------------------------
+    -- 4. テキスト情報 (名前とHP値)
+    -- --------------------------------------------------------------------
+    -- 名前
+    if unit ~= "player" then
+        local Name = Health:CreateFontString(nil, "OVERLAY")
+        if unit == "pet" then
+            Name:SetPoint("BOTTOM", Health, "BOTTOM", 0, -25)
+            Name:SetTextColor(1, 1, 1) -- 白色
+            self:Tag(Name, "[name] [dead][offline]")
+        elseif unit and unit:match("raid") then
+            Name:SetPoint("CENTER", Health, "CENTER", 0, 0)
+            self:Tag(Name, "[raidcolor][name] [dead][offline][my:afk]")
+        elseif unit and unit:match("boss") then
+            Name:SetPoint("LEFT", Health, "LEFT", 5, 0)
+            self:Tag(Name, "[raidcolor][name] [dead][offline]")
+        else
+            if unit == "target" then
+                local Level = Health:CreateFontString(nil, "OVERLAY")
+                Level:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, 0)
+                self:Tag(Level, "[difficulty][level][shortclassification]")
+                Name:SetPoint("LEFT", Level, "RIGHT", 5, 0)
+                self.Level = Level
+            else
+                Name:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, 0)
+            end
+
+            self:Tag(Name, "[raidcolor][name] [dead][offline][my:afk]")
+        end
+        self.Name = Name
+    end
+
+    -- HP数値
+    if unit ~= "pet" and not (unit and unit:match("raid")) then
+        local HpVal = Health:CreateFontString(nil, "OVERLAY")
+        -- 位置はUpdateUnitFrameで設定
+        if unit == "player" then
+            self:Tag(HpVal, "[perhp]% [dead][offline][my:afk]")
+        else
+            self:Tag(HpVal, "[perhp]%") -- パーセント表示
+        end
+        self.HpVal = HpVal
+    end
+
+    -- --------------------------------------------------------------------
+    -- 5. Portrait (3Dモデル)
+    -- --------------------------------------------------------------------
+    local Portrait = CreateFrame("PlayerModel", nil, self)
+    Portrait:SetSize(150, 43)
+    Portrait:SetPoint("LEFT", self, "LEFT", 2, 0) -- フレームの右側に配置
+
+    -- 背景 (オプション)
+    local PortraitBg = self:CreateTexture(nil, "BACKGROUND")
+    PortraitBg:SetAllPoints(Portrait)
+    PortraitBg:SetColorTexture(0, 0, 0, 0.5)
+
+    self.Portrait = Portrait
+    self.PortraitBg = PortraitBg
+    self.PortraitModel = Portrait -- 参照を保持しておく
+
+    -- --------------------------------------------------------------------
+    -- 6. Raid Icon (レイドアイコン)
+    -- --------------------------------------------------------------------
+    local RaidTargetIndicator = Health:CreateTexture(nil, "OVERLAY")
+    self.RaidTargetIndicator = RaidTargetIndicator
+
+    -- --------------------------------------------------------------------
+    -- 7. Castbar (詠唱バー)
+    -- --------------------------------------------------------------------
+    if not (unit and (unit:match("raid") or unit:match("boss"))) then
+        local Castbar = CreateFrame("StatusBar", nil, self)
+
+        local CastbarBg = Castbar:CreateTexture(nil, "BACKGROUND")
+        CastbarBg:SetAllPoints(true)
+
+        -- 呪文名
+        local CastbarText = Castbar:CreateFontString(nil, "OVERLAY")
+        CastbarText:SetPoint("LEFT", Castbar, "LEFT", 2, 0)
+        
+        -- アイコン
+        local CastbarIcon = Castbar:CreateTexture(nil, "OVERLAY")
+        CastbarIcon:SetSize(20, 20)
+        CastbarIcon:SetPoint("RIGHT", Castbar, "LEFT", -5, 0)
+        CastbarIcon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+
+        -- 詠唱時間
+        local CastbarTime = Castbar:CreateFontString(nil, "OVERLAY")
+        CastbarTime:SetPoint("RIGHT", Castbar, "RIGHT", -2, 0)
+
+        Castbar.bg = CastbarBg
+        Castbar.Text = CastbarText
+        Castbar.Icon = CastbarIcon
+        Castbar.Time = CastbarTime
+        Castbar.timeToHold = 0.5 -- 完了後に少し表示を残す
+
+        self.Castbar = Castbar
+        self.CastbarRaw = Castbar
+    end
+
+    -- --------------------------------------------------------------------
+    -- 8. Role Icon (ロールアイコン)
+    -- --------------------------------------------------------------------
+    local GroupRoleIndicator = Health:CreateTexture(nil, "OVERLAY")
+    self.GroupRoleIndicator = GroupRoleIndicator
+
+    -- --------------------------------------------------------------------
+    -- 9. Ready Check Icon (レディチェックアイコン)
+    -- --------------------------------------------------------------------
+    local ReadyCheckIndicator = Health:CreateTexture(nil, "OVERLAY")
+    self.ReadyCheckIndicator = ReadyCheckIndicator
+
+    -- --------------------------------------------------------------------
+    -- 10. Rest Icon (休息アイコン)
+    -- --------------------------------------------------------------------
+    if unit == "player" then
+        local RestingIndicator = Health:CreateTexture(nil, "OVERLAY")
+        RestingIndicator:SetTexture("Interface\\CharacterFrame\\UI-StateIcon")
+        RestingIndicator:SetTexCoord(0, 0.5, 0, 0.421875)
+        self.RestingIndicator = RestingIndicator
+    end
+
+    -- --------------------------------------------------------------------
+    -- 11. Combat Icon (戦闘アイコン)
+    -- --------------------------------------------------------------------
+    if unit == "player" then
+        local CombatIndicator = Health:CreateTexture(nil, "OVERLAY")
+        CombatIndicator:SetTexture("Interface\\CharacterFrame\\UI-StateIcon")
+        CombatIndicator:SetTexCoord(0.5, 1, 0, 0.5)
+        self.CombatIndicator = CombatIndicator
+    end
+
+    -- --------------------------------------------------------------------
+    -- 12. Class Power (コンボポイント等)
+    -- --------------------------------------------------------------------
+    if unit == "player" then
+        local ClassPower = {}
+        for i = 1, 6 do -- 最大6ポイント
+            local bar = CreateFrame("StatusBar", nil, self)
+            bar:SetHeight(10)
+            bar:SetWidth((254 - (5 * 2)) / 6) -- フレーム幅に合わせて均等配置
+
+            if i == 1 then
+                bar:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 5)
+            else
+                bar:SetPoint("LEFT", ClassPower[i-1], "RIGHT", 2, 0)
+            end
+
+            local bg = bar:CreateTexture(nil, "BACKGROUND")
+            bg:SetAllPoints(true)
+            bg:SetColorTexture(0.1, 0.1, 0.1)
+            bar.bg = bg
+
+            ClassPower[i] = bar
+        end
+        self.ClassPower = ClassPower
+    end
+
+    -- --------------------------------------------------------------------
+    -- 13. Runes (デスナイトのルーン)
+    -- --------------------------------------------------------------------
+    if unit == "player" and select(2, UnitClass("player")) == "DEATHKNIGHT" then
+        local Runes = {}
+        for i = 1, 6 do
+            local rune = CreateFrame("StatusBar", nil, self)
+            rune:SetHeight(10)
+            rune:SetWidth((254 - (5 * 2)) / 6) -- ClassPowerと同じ幅計算
+
+            if i == 1 then
+                rune:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 5)
+            else
+                rune:SetPoint("LEFT", Runes[i-1], "RIGHT", 2, 0)
+            end
+
+            local bg = rune:CreateTexture(nil, "BACKGROUND")
+            bg:SetAllPoints(true)
+            bg:SetColorTexture(0.1, 0.1, 0.1)
+            rune.bg = bg
+
+            Runes[i] = rune
+        end
+        self.Runes = Runes
+    end
+
+    -- --------------------------------------------------------------------
+    -- 14. Additional Power (Druid Mana)
+    -- --------------------------------------------------------------------
+    if unit == "player" and select(2, UnitClass("player")) == "DRUID" then
+        local AdditionalPower = CreateFrame("StatusBar", nil, self)
+        AdditionalPower:SetHeight(10)
+        AdditionalPower:SetPoint("TOPLEFT", self.Power, "BOTTOMLEFT", 0, -2)
+        AdditionalPower:SetPoint("TOPRIGHT", self.Power, "BOTTOMRIGHT", 0, -2)
+        AdditionalPower.colorPower = true
+
+        local bg = AdditionalPower:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints(true)
+        bg:SetColorTexture(0.2, 0.2, 0.2)
+        AdditionalPower.bg = bg
+
+        self.AdditionalPower = AdditionalPower
+    end
+
+    -- --------------------------------------------------------------------
+    -- 15. Leader Icon (リーダーアイコン)
+    -- --------------------------------------------------------------------
+    local LeaderIndicator = Health:CreateTexture(nil, "OVERLAY")
+    LeaderIndicator:SetTexture("Interface\\GroupFrame\\UI-Group-LeaderIcon")
+    self.LeaderIndicator = LeaderIndicator
+
+    -- --------------------------------------------------------------------
+    -- 16. Assistant Icon (アシスタントアイコン)
+    -- --------------------------------------------------------------------
+    local AssistantIndicator = Health:CreateTexture(nil, "OVERLAY")
+    AssistantIndicator:SetTexture("Interface\\GroupFrame\\UI-Group-AssistantIcon")
+    self.AssistantIndicator = AssistantIndicator
+
+    -- --------------------------------------------------------------------
+    -- 17. Buffs
+    -- --------------------------------------------------------------------
+    local Buffs = CreateFrame("Frame", nil, self)
+    Buffs.gap = true
+    Buffs.initialAnchor = "BOTTOMLEFT"
+    Buffs["growth-x"] = "RIGHT"
+    Buffs["growth-y"] = "UP"
+    Buffs.showStealableBuffs = true
+    Buffs.CustomFilter = CustomFilter
+    self.Buffs = Buffs
+
+    -- 18. Debuffs
+    local Debuffs = CreateFrame("Frame", nil, self)
+    Debuffs.gap = true
+    Debuffs.initialAnchor = "BOTTOMLEFT"
+    Debuffs["growth-x"] = "RIGHT"
+    Debuffs["growth-y"] = "UP"
+    Debuffs.showDebuffType = true
+    Debuffs.CustomFilter = CustomFilter
+    self.Debuffs = Debuffs
+
+    -- スタイル適用 (初期化)
+    UpdateUnitFrame(self, true)
+    if self.Health then self.Health:ForceUpdate() end
+end
+
 local Loader = CreateFrame("Frame")
 Loader:RegisterEvent("ADDON_LOADED")
 Loader:SetScript("OnEvent", function(self, event, addon)
@@ -440,6 +839,11 @@ Loader:SetScript("OnEvent", function(self, event, addon)
 
     -- 現在のプロファイルを ns.Config にセット
     ns.Config = ns.db.profile -- ns.Config now points to the live profile
+
+    -- スタイルを登録
+    -- oUF:RegisterStyle("MyLayout", Shared)
+    -- フレームを生成
+    -- oUF:Factory(CreateFrames)
 
     -- 保存された設定を適用するためにフレームを更新
     ns.UpdateFrames()
@@ -517,15 +921,29 @@ local function Shared(self, unit)
         elseif parent.unit == "target" then uConfig = C.Units.Target
         end
 
-        if uConfig.HideHealthTextAtFull then
-            if min == max then
-                parent.HpVal:Hide()
-            else
-                parent.HpVal:Show()
-            end
-        else
-            parent.HpVal:Show()
+        local isFull = (min == max)
+        local shouldHideHealth = uConfig.HideHealthTextAtFull and isFull
+        
+        local tag = uConfig.HealthTag or "[perhp]%"
+        if shouldHideHealth then
+            tag = ""
         end
+        
+        if uConfig.ShowStatusText then
+            if tag ~= "" then
+                tag = tag .. " [dead][offline][my:afk]"
+            else
+                tag = "[dead][offline][my:afk]"
+            end
+        end
+        
+        if parent.HpVal.__currentTag ~= tag then
+            parent:Tag(parent.HpVal, tag)
+            parent.HpVal.__currentTag = tag
+            parent.HpVal:UpdateTag()
+        end
+        
+        parent.HpVal:Show()
     end
 
     -- oUFに登録 (self.Healthに代入することでoUFが自動更新を行う)

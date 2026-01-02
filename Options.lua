@@ -36,6 +36,7 @@ local iconAnchorPoints = {
 
 local tagValues = {
     ["[perhp]%"] = "Percent (100%)",
+    ["[my:perhp]%"] = "Percent (100.0%)",
     ["[curhp]"] = "Current (1234)",
     ["[curhp] / [maxhp]"] = "Current / Max (1234 / 2000)",
     ["[missinghp]"] = "Deficit (-500)",
@@ -448,6 +449,13 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
             get = function() return config.HideHealthTextAtFull end,
             set = function(_, val) config.HideHealthTextAtFull = val; ns.UpdateFrames() end,
         }
+        args.health.args.showStatus = {
+            type = "toggle",
+            name = "Show Status Text",
+            order = 5,
+            get = function() return config.ShowStatusText end,
+            set = function(_, val) config.ShowStatusText = val; ns.UpdateFrames() end,
+        }
     end
 
     return {
@@ -485,6 +493,13 @@ ns.SetupOptions = function()
                         type = "description",
                         name = "Author: ktkr3d",
                         order = 2,
+                    },
+                    url = {
+                        type = "input",
+                        name = "URL",
+                        get = function() return "https://github.com/ktkr3d/oUF_MyLayout" end,
+                        width = "double",
+                        order = 3,
                     },
                 },
             },

@@ -29,7 +29,8 @@ ns.Config = {
             PowerBarTexture = nil,
             HealthBarTexture = nil,
             HideHealthTextAtFull = true,
-            HealthTag = "[perhp]%",
+            ShowStatusText = true,
+            HealthTag = "[my:perhp]%",
             NameText = {
                 Font = nil, -- nilの場合はMedia.Fontを使用
                 Size = 20,
@@ -66,7 +67,7 @@ ns.Config = {
                 Y = 0,
             },
             Icons = {
-                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
+                RaidTarget = { Enable = true, Size = 42, Point = "TOP", X = 0, Y = 25 },
                 GroupRole = { Enable = true, Size = 32, Point = "TOPRIGHT", X = 15, Y = 15 },
                 ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
                 Resting = { Enable = true, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
@@ -99,8 +100,9 @@ ns.Config = {
             PowerBarTexture = nil,
             HealthBarTexture = nil,
             HideHealthTextAtFull = true,
-            HealthTag = "[perhp]%",
-            NameTag = "[raidcolor][name] [dead][offline][my:afk]",
+            ShowStatusText = true,
+            HealthTag = "[my:perhp]%",
+            NameTag = "[raidcolor][name]",
             NameText = {
                 Size = 20,
                 Outline = "OUTLINE",
@@ -135,7 +137,7 @@ ns.Config = {
                 Y = 0,
             },
             Icons = {
-                RaidTarget = { Enable = true, Size = 42, Point = "TOP", X = 0, Y = 15 },
+                RaidTarget = { Enable = true, Size = 42, Point = "TOP", X = 0, Y = 25 },
                 GroupRole = { Enable = true, Size = 32, Point = "TOPRIGHT", X = 15, Y = 15 },
                 ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
                 Leader = { Enable = true, Size = 32, Point = "TOPLEFT", X = -15, Y = 15 },
@@ -200,7 +202,7 @@ ns.Config = {
                 Y = 0,
             },
             Icons = {
-                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
+                RaidTarget = { Enable = true, Size = 36, Point = "TOP", X = 0, Y = 10 },
                 GroupRole = { Enable = false, Size = 32, Point = "TOPRIGHT", X = 10, Y = 10 },
                 ReadyCheck = { Enable = false, Size = 24, Point = "CENTER", X = 0, Y = 0 },
                 Leader = { Enable = false, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
@@ -231,8 +233,9 @@ ns.Config = {
             PowerBarTexture = nil,
             HealthBarTexture = nil,
             HideHealthTextAtFull = true,
-            HealthTag = "[perhp]%",
-            NameTag = "[raidcolor][name] [dead][offline]",
+            ShowStatusText = true,
+            HealthTag = "[my:perhp]%",
+            NameTag = "[raidcolor][name]",
             NameText = {
                 Size = 20,
                 Outline = "OUTLINE",
@@ -349,7 +352,8 @@ ns.Config = {
             PowerBarTexture = nil,
             HealthBarTexture = nil,
             HideHealthTextAtFull = true,
-            HealthTag = "[perhp]%",
+            ShowStatusText = true,
+            HealthTag = "[my:perhp]%",
             NameTag = "[raidcolor][name] [dead][offline]",
             NameText = {
                 Size = 20,
@@ -401,7 +405,8 @@ ns.Config = {
             PowerBarTexture = nil,
             HealthBarTexture = nil,
             HideHealthTextAtFull = true,
-            HealthTag = "[perhp]%",
+            ShowStatusText = true,
+            HealthTag = "[my:perhp]%",
             NameTag = "[raidcolor][name]",
             NameText = {
                 Size = 12,
@@ -454,8 +459,9 @@ ns.Config = {
             PowerBarTexture = nil,
             HealthBarTexture = nil,
             HideHealthTextAtFull = true,
-            HealthTag = "[perhp]%",
-            NameTag = "[raidcolor][name] [dead][offline][my:afk]",
+            ShowStatusText = true,
+            HealthTag = "[my:perhp]%",
+            NameTag = "[raidcolor][name]",
             NameText = {
                 Size = 20,
                 Outline = "OUTLINE",
