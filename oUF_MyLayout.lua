@@ -407,8 +407,50 @@ function ns.UpdateFrames()
                 ns.raid:Show()
                 ns.raid:ClearAllPoints()
                 ns.raid:SetPoint(unpack(C.Units.Raid.Position))
+                
+                -- Update holder size for Edit Mode
+                local spacing = 5
+                local totalWidth = (C.Units.Raid.Width * 5) + (spacing * 4)
+                local totalHeight = (C.Units.Raid.Height * 5) + (spacing * 4)
+                ns.raid:SetSize(totalWidth, totalHeight)
+
+                for i = 1, 5 do
+                    local header = ns.raidHeaders[i]
+                    if header then
+                        local visibility = "custom "
+                        if C.Units.Raid.ShowParty then
+                            visibility = visibility .. "[group:party] show; "
+                            header:SetAttribute("showParty", true)
+                        else
+                            visibility = visibility .. "[group:raid] show; "
+                            header:SetAttribute("showParty", false)
+                        end
+
+                        if C.Units.Raid.ShowSolo then
+                            visibility = visibility .. "[nogroup] show; "
+                            header:SetAttribute("showSolo", true)
+                        else
+                            header:SetAttribute("showSolo", false)
+                        end
+                        
+                        visibility = visibility .. "hide"
+                        RegisterStateDriver(header, "visibility", visibility)
+
+                        header:ClearAllPoints()
+                        -- Fixed position for each group column
+                        local offsetX = (i - 1) * (C.Units.Raid.Width + spacing)
+                        header:SetPoint("TOPLEFT", ns.raid, "TOPLEFT", offsetX, 0)
+                    end
+                end
             else
                 ns.raid:Hide()
+                for i = 1, 5 do
+                    local header = ns.raidHeaders[i]
+                    if header then
+                        UnregisterStateDriver(header, "visibility")
+                        header:Hide()
+                    end
+                end
             end
         end
         -- Boss
@@ -495,6 +537,25 @@ function ns.RegisterWithEditMode(unitKey, frame, displayName, category)
 end
 
 -- ------------------------------------------------------------------------
+-- Blizzardフレームの非表示
+-- ------------------------------------------------------------------------
+local hiddenParent = CreateFrame("Frame", nil, UIParent)
+hiddenParent:Hide()
+
+local function HideBlizzardFrames()
+    if CompactRaidFrameManager then
+        CompactRaidFrameManager:SetParent(hiddenParent)
+        CompactRaidFrameManager:UnregisterAllEvents()
+        CompactRaidFrameManager:Hide()
+    end
+    if CompactRaidFrameContainer then
+        CompactRaidFrameContainer:SetParent(hiddenParent)
+        CompactRaidFrameContainer:UnregisterAllEvents()
+        CompactRaidFrameContainer:Hide()
+    end
+end
+
+-- ------------------------------------------------------------------------
 -- 設定の初期化 (SavedVariables)
 -- ------------------------------------------------------------------------
 function ns:OnProfileChanged(event, database, newProfileKey)
@@ -539,6 +600,9 @@ Loader:SetScript("OnEvent", function(self, event, addon)
 
     -- 設定画面の初期化
     if ns.SetupOptions then ns.SetupOptions() end
+
+    -- BlizzardのRaidフレームを非表示にする
+    HideBlizzardFrames()
 
     self:UnregisterEvent("ADDON_LOADED")
 end)
@@ -927,21 +991,24 @@ oUF:Factory(function(self)
     ns.RegisterWithEditMode("Party", ns.party, "Party Frames", "Party Frames")
 
     -- レイドフレームの生成
-    ns.raid = self:SpawnHeader("oUF_MyLayoutRaid", nil, "custom [group:raid] show; hide",
-        "showRaid", true,
-        "xOffset", 5,
-        "yOffset", -5,
-        "point", "TOP",
-        "groupFilter", "1,2,3,4,5",
-        "groupingOrder", "1,2,3,4,5",
-        "groupBy", "GROUP",
-        "maxColumns", 5,
-        "unitsPerColumn", 5,
-        "columnSpacing", 5,
-        "columnAnchorPoint", "LEFT",
-        "sortMethod", "INDEX"
-    )
+    -- Create a holder frame for positioning and Edit Mode
+    ns.raid = CreateFrame("Frame", "oUF_MyLayoutRaidHolder", UIParent)
+    ns.raid:SetSize(100, 100) -- Size updated in UpdateFrames
     ns.RegisterWithEditMode("Raid", ns.raid, "Raid Frames", "Raid Frames")
+
+    ns.raidHeaders = {}
+    for i = 1, 5 do
+        ns.raidHeaders[i] = self:SpawnHeader("oUF_MyLayoutRaid" .. i, nil, "custom [group:raid] show; hide",
+            "showRaid", true,
+            "xOffset", 5,
+            "yOffset", -5,
+            "point", "TOP",
+            "groupFilter", tostring(i),
+            "groupBy", "GROUP",
+            "groupingOrder", tostring(i),
+            "sortMethod", "INDEX"
+        )
+    end
 
     -- ボスフレームの生成 (Boss1 - Boss5)
     ns.boss = {}

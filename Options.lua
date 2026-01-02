@@ -20,6 +20,10 @@ local anchorValues = {
     ["BOTTOM"] = "Bottom",
     ["LEFT"] = "Left",
     ["RIGHT"] = "Right",
+    ["TOPLEFT"] = "Top Left",
+    ["TOPRIGHT"] = "Top Right",
+    ["BOTTOMLEFT"] = "Bottom Left",
+    ["BOTTOMRIGHT"] = "Bottom Right",
 }
 
 local iconAnchorPoints = {
@@ -462,6 +466,24 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
     if key == "Player" then
         args.icons.args.Resting = CreateIconSettings("Resting", "Resting", 10)
         args.icons.args.Combat = CreateIconSettings("Combat", "Combat", 11)
+    end
+
+    if key == "Raid" then
+        args.general.args.parentAnchor = {
+            type = "select", name = "Parent Anchor", values = anchorValues, order = 6,
+            get = function() return config.Position[3] end,
+            set = function(_, val) config.Position[3] = val; ns.UpdateFrames() end,
+        }
+        args.general.args.showParty = {
+            type = "toggle", name = "Show Party", order = 7,
+            get = function() return config.ShowParty end,
+            set = function(_, val) config.ShowParty = val; ns.UpdateFrames() end,
+        }
+        args.general.args.showSolo = {
+            type = "toggle", name = "Show Solo", order = 8,
+            get = function() return config.ShowSolo end,
+            set = function(_, val) config.ShowSolo = val; ns.UpdateFrames() end,
+        }
     end
 
     if key ~= "Pet" and key ~= "Raid" then

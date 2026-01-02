@@ -55,7 +55,7 @@ ns.Config = {
                 RelativeTo = "FRAME",
                 RelativePoint = "BOTTOMLEFT",
                 X = 0,
-                Y = -5,
+                Y = -30,
                 Width = 0, -- 0 for auto
                 Height = 20,
             },
@@ -127,7 +127,7 @@ ns.Config = {
                 RelativeTo = "FRAME",
                 RelativePoint = "BOTTOMLEFT",
                 X = 0,
-                Y = -5,
+                Y = -30,
                 Width = 0, -- 0 for auto
                 Height = 20,
             },
@@ -374,8 +374,10 @@ ns.Config = {
         },
         Raid = {
             Enable = true,
+            ShowSolo = true,
+            ShowParty = true,
             Width = 80,
-            Height = 35,
+            Height = 36,
             HealthHeight = 22,
             PowerHeight = 8,
             PowerBarTexture = nil,
@@ -389,11 +391,11 @@ ns.Config = {
                 Point = "CENTER",
             },
             HealthText = {
-                Size = 12,
+                Size = 16,
                 Outline = "OUTLINE",
-                Point = "RIGHT",
+                Point = "CENTER",
                 X = 0,
-                Y = 0,
+                Y = -14,
             },
             Portrait = {
                 Enable = false,
@@ -407,7 +409,7 @@ ns.Config = {
                 GroupRole = { Enable = true, Size = 20, Point = "TOPRIGHT", X = 5, Y = 5 },
                 ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
                 Leader = { Enable = true, Size = 20, Point = "TOPLEFT", X = -5, Y = 5 },
-                Assistant = { Enable = true, Size = 12, Point = "TOPLEFT", X = 2, Y = -2 },
+                Assistant = { Enable = true, Size = 20, Point = "TOPLEFT", X = -5, Y = 5 },
             },
             Buffs = {
                 Enable = false,
@@ -423,7 +425,7 @@ ns.Config = {
                 Y = 20,
                 PlayerOnly = false,
             },
-            Position = {"RIGHT", "UIParent", "RIGHT", -390, -320},
+            Position = {"TOPLEFT", "UIParent", "BOTTOMRIGHT", -430, 225 },
         },
         Boss = {
             Enable = true,
@@ -481,8 +483,8 @@ ns.Config = {
         MainTank = {
             Enable = true,
             Width = 120,
-            Height = 35,
-            HealthHeight = 26,
+            Height = 36,
+            HealthHeight = 24,
             PowerHeight = 8,
             PowerBarTexture = nil,
             HealthBarTexture = nil,
