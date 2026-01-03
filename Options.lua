@@ -54,6 +54,7 @@ local nameTagValues = {
     ["[difficulty][level][shortclassification] [name]"] = "Full Level Name",
     ["[raidcolor][name] [dead][offline][my:afk]"] = "Name + Status",
     ["[name] [dead][offline]"] = "Name + Dead/Offline",
+    ["[raidcolor][my:shortname]"] = "Short Name (8 chars)",
 }
 
 -- ユニットごとの設定グループを生成する関数
@@ -468,12 +469,15 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
         args.icons.args.Combat = CreateIconSettings("Combat", "Combat", 11)
     end
 
-    if key == "Raid" then
+    if xIndex == 4 then
         args.general.args.parentAnchor = {
             type = "select", name = "Parent Anchor", values = anchorValues, order = 6,
             get = function() return config.Position[3] end,
             set = function(_, val) config.Position[3] = val; ns.UpdateFrames() end,
         }
+    end
+
+    if key == "Raid" then
         args.general.args.showParty = {
             type = "toggle", name = "Show Party", order = 7,
             get = function() return config.ShowParty end,
@@ -596,9 +600,11 @@ ns.SetupOptions = function()
             focus = CreateUnitGroup("Focus", "Focus Frame", 23, true, true),
             pet = CreateUnitGroup("Pet", "Pet Frame", 24, true, true),
             party = CreateUnitGroup("Party", "Party Frame", 25, true, true),
+            partytarget = CreateUnitGroup("PartyTarget", "Party Target Frame", 25.5, false, true),
             raid = CreateUnitGroup("Raid", "Raid Frame", 26, false, true, 4, 5),
             boss = CreateUnitGroup("Boss", "Boss Frame", 27, false, true, 4, 5),
-            maintank = CreateUnitGroup("MainTank", "MainTank Frame", 28, false, true),
+            maintank = CreateUnitGroup("MainTank", "MainTank Frame", 28, false, true, 4, 5),
+            maintanktarget = CreateUnitGroup("MainTankTarget", "MainTank Target Frame", 29, false, true, 4, 5),
             profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(ns.db),
         },
     }

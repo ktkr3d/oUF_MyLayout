@@ -38,7 +38,7 @@ ns.Config = {
                 Size = 20,
                 Outline = "OUTLINE",
                 Point = "LEFT",
-                Y = -45,
+                Y = -40,
                 Enable = false
             },
             HealthText = {
@@ -112,7 +112,7 @@ ns.Config = {
                 Size = 20,
                 Outline = "OUTLINE",
                 Point = "LEFT",
-                Y = -45,
+                Y = -40,
             },
             HealthText = {
                 Size = 24,
@@ -177,7 +177,7 @@ ns.Config = {
             HideHealthTextAtFull = true,
             ShowStatusText = false,
             HealthTag = "",
-            NameTag = "[raidcolor][name]",
+            NameTag = "[raidcolor][my:shortname]",
             NameText = {
                 Size = 20,
                 Outline = "OUTLINE",
@@ -211,7 +211,7 @@ ns.Config = {
             HideHealthTextAtFull = true,
             ShowStatusText = false,
             HealthTag = "",
-            NameTag = "[raidcolor][name]",
+            NameTag = "[raidcolor][my:shortname]",
             NameText = {
                 Size = 20,
                 Outline = "OUTLINE",
@@ -318,7 +318,7 @@ ns.Config = {
                 Size = 20,
                 Outline = "OUTLINE",
                 Point = "LEFT",
-                Y = -45,
+                Y = -40
             },
             HealthText = {
                 Size = 20,
@@ -329,12 +329,12 @@ ns.Config = {
             },
             Castbar = {
                 Enable = true,
-                Point = "LEFT",
+                Point = "TOPLEFT",
                 RelativeTo = "FRAME",
-                RelativePoint = "RIGHT",
-                X = 45,
-                Y = 0,
-                Width = 100, -- 0 for auto
+                RelativePoint = "BOTTOMLEFT",
+                X = 0,
+                Y = -25,
+                Width = 0, -- 0 for auto
                 Height = 20,
             },
             CastbarText = {
@@ -372,6 +372,43 @@ ns.Config = {
             },
             Position = {"LEFT", 200, 150},
         },
+        PartyTarget = {
+            Enable = true,
+            Width = 140,
+            Height = 46,
+            HealthHeight = 30,
+            PowerHeight = 10,
+            PowerBarTexture = nil,
+            HealthBarTexture = nil,
+            HideHealthTextAtFull = true,
+            ShowStatusText = false,
+            HealthTag = "",
+            NameTag = "[raidcolor][my:shortname]",
+            NameText = {
+                Size = 20,
+                Outline = "OUTLINE",
+                Point = "CENTER",
+                Y = -8
+            },
+            HealthText = {
+                Size = 12,
+                Outline = "OUTLINE",
+                Point = "RIGHT",
+                X = 0,
+                Y = 0,
+            },
+            Icons = {
+                RaidTarget = { Enable = true, Size = 32, Point = "TOP", X = 0, Y = 15 },
+            },
+            Buffs = {
+                Enable = false,
+                Size = 12,
+                X = 0,
+                Y = 5,
+                PlayerOnly = false,
+            },
+            Position = {"LEFT", 400, 150},
+        },
         Raid = {
             Enable = true,
             ShowSolo = true,
@@ -384,18 +421,19 @@ ns.Config = {
             HealthBarTexture = nil,
             HealthTag = "",
             ShowStatusText = true,
-            NameTag = "[raidcolor][name]",
+            NameTag = "[raidcolor][my:shortname]",
             NameText = {
                 Size = 12,
                 Outline = "OUTLINE",
                 Point = "CENTER",
+                Y = -4,
             },
             HealthText = {
                 Size = 16,
                 Outline = "OUTLINE",
                 Point = "CENTER",
                 X = 0,
-                Y = -14,
+                Y = -15,
             },
             Portrait = {
                 Enable = false,
@@ -405,7 +443,7 @@ ns.Config = {
                 Y = 0,
             },
             Icons = {
-                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
+                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 10 },
                 GroupRole = { Enable = true, Size = 20, Point = "TOPRIGHT", X = 5, Y = 5 },
                 ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
                 Leader = { Enable = true, Size = 20, Point = "TOPLEFT", X = -5, Y = 5 },
@@ -438,10 +476,12 @@ ns.Config = {
             HideHealthTextAtFull = true,
             ShowStatusText = true,
             HealthTag = "[my:perhp]%",
-            NameTag = "[raidcolor][name] [dead][offline]",
+            NameTag = "[raidcolor][my:shortname]",
             NameText = {
                 Size = 16,
                 Outline = "OUTLINE",
+                Point = "LEFT",
+                X = 5
             },
             HealthText = {
                 Size = 16,
@@ -478,12 +518,12 @@ ns.Config = {
                 Y = 35,
                 PlayerOnly = false,
             },
-            Position = {"RIGHT", "UIParent", "RIGHT", 5, 250},
+            Position = {"TOPRIGHT", "UIParent", "TOPRIGHT", -10, -250},
         },
         MainTank = {
             Enable = true,
             Width = 120,
-            Height = 36,
+            Height = 38,
             HealthHeight = 24,
             PowerHeight = 8,
             PowerBarTexture = nil,
@@ -491,17 +531,18 @@ ns.Config = {
             HideHealthTextAtFull = true,
             ShowStatusText = true,
             HealthTag = "[my:perhp]%",
-            NameTag = "[raidcolor][name]",
+            NameTag = "[raidcolor][my:shortname]",
             NameText = {
                 Size = 16,
                 Outline = "OUTLINE",
-                Point = "CENTER",
+                Point = "LEFT",
+                X = 5
             },
             HealthText = {
                 Size = 16,
                 Outline = "OUTLINE",
                 Point = "RIGHT",
-                X = 0,
+                X = -5,
                 Y = 0,
             },
             Portrait = {
@@ -532,7 +573,44 @@ ns.Config = {
                 Y = 20,
                 PlayerOnly = false,
             },
-            Position = {"RIGHT", -10, -260},
+            Position = {"TOPRIGHT", "UIParent", "BOTTOMRIGHT", -10, 320 },
+        },
+        MainTankTarget = {
+            Enable = true,
+            Width = 120,
+            Height = 38,
+            HealthHeight = 24,
+            PowerHeight = 8,
+            PowerBarTexture = nil,
+            HealthBarTexture = nil,
+            HideHealthTextAtFull = true,
+            ShowStatusText = false,
+            HealthTag = "",
+            NameTag = "[raidcolor][my:shortname]",
+            NameText = {
+                Size = 14,
+                Outline = "OUTLINE",
+                Point = "LEFT",
+                X = 5
+            },
+            HealthText = {
+                Size = 14,
+                Outline = "OUTLINE",
+                Point = "RIGHT",
+                X = -5,
+                Y = 0,
+            },
+            Icons = {
+                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
+            },
+            Buffs = {
+                Enable = false,
+                Size = 12,
+                X = 0,
+                Y = 5,
+                PlayerOnly = false,
+            },
+            Position = {"TOPRIGHT", "UIParent", "BOTTOMRIGHT", -140, 320 },
         },
         -- デフォルト (上記以外)
         Default = {

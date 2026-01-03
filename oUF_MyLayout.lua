@@ -33,6 +33,20 @@ oUF.Tags.Methods["my:perhp"] = function(unit)
 end
 oUF.Tags.Events["my:perhp"] = "UNIT_HEALTH UNIT_MAXHEALTH"
 
+-- カスタムタグ: 短縮名 (8文字)
+oUF.Tags.Methods["my:shortname"] = function(unit)
+    local name = UnitName(unit)
+    if not name then return "" end
+    
+    local lenFunc = string.utf8len or string.len
+    local subFunc = string.utf8sub or string.sub
+    if lenFunc(name) > 8 then
+        return subFunc(name, 1, 8) .. "..."
+    end
+    return name
+end
+oUF.Tags.Events["my:shortname"] = "UNIT_NAME_UPDATE"
+
 -- ------------------------------------------------------------------------
 -- SharedMediaのサポート
 -- ------------------------------------------------------------------------
@@ -77,8 +91,10 @@ local function UpdateUnitFrame(self, isInit)
 
     local uConfig = C.Units.Default
     if unit == "pet" then uConfig = C.Units.Pet
+    elseif name and name:match("oUF_MyLayoutMainTankTarget") then uConfig = C.Units.MainTankTarget
     elseif name and name:match("oUF_MyLayoutMainTank") then uConfig = C.Units.MainTank
     elseif name and name:match("oUF_MyLayoutRaid") then uConfig = C.Units.Raid
+    elseif name and name:match("oUF_MyLayoutPartyTarget") then uConfig = C.Units.PartyTarget
     elseif name and name:match("oUF_MyLayoutParty") then uConfig = C.Units.Party
     elseif name and name:match("oUF_MyLayoutBoss") then uConfig = C.Units.Boss
     elseif unit == "player" then uConfig = C.Units.Player
@@ -289,8 +305,10 @@ local function UpdateUnitFrame(self, isInit)
     local unitKey
     local name = self:GetName()
     if self.unit == "pet" then unitKey = "Pet"
+    elseif name and name:match("oUF_MyLayoutMainTankTarget") then unitKey = "MainTankTarget"
     elseif name and name:match("oUF_MyLayoutMainTank") then unitKey = "MainTank"
     elseif name and name:match("oUF_MyLayoutRaid") then unitKey = "Raid"
+    elseif name and name:match("oUF_MyLayoutPartyTarget") then unitKey = "PartyTarget"
     elseif name and name:match("oUF_MyLayoutParty") then unitKey = "Party"
     elseif name and name:match("oUF_MyLayoutBoss") then unitKey = "Boss"
     elseif self.unit == "player" then unitKey = "Player"
@@ -401,6 +419,16 @@ function ns.UpdateFrames()
                 ns.party:Hide()
             end
         end
+        -- PartyTarget
+        if ns.partytarget then
+            if C.Units.PartyTarget.Enable then
+                ns.partytarget:Show()
+                ns.partytarget:ClearAllPoints()
+                ns.partytarget:SetPoint(unpack(C.Units.PartyTarget.Position))
+            else
+                ns.partytarget:Hide()
+            end
+        end
         -- Raid
         if ns.raid then
             if C.Units.Raid.Enable then
@@ -483,6 +511,16 @@ function ns.UpdateFrames()
                 ns.maintank:SetPoint(unpack(C.Units.MainTank.Position))
             else
                 ns.maintank:Hide()
+            end
+        end
+        -- MainTankTarget
+        if ns.maintanktarget then
+            if C.Units.MainTankTarget.Enable then
+                ns.maintanktarget:Show()
+                ns.maintanktarget:ClearAllPoints()
+                ns.maintanktarget:SetPoint(unpack(C.Units.MainTankTarget.Position))
+            else
+                ns.maintanktarget:Hide()
             end
         end
     end
@@ -677,8 +715,10 @@ local function Shared(self, unit)
         local uConfig = C.Units.Default
         local name = parent:GetName()
         if parent.unit == "pet" then uConfig = C.Units.Pet
+        elseif name and name:match("oUF_MyLayoutMainTankTarget") then uConfig = C.Units.MainTankTarget
         elseif name and name:match("oUF_MyLayoutMainTank") then uConfig = C.Units.MainTank
         elseif name and name:match("oUF_MyLayoutRaid") then uConfig = C.Units.Raid
+        elseif name and name:match("oUF_MyLayoutPartyTarget") then uConfig = C.Units.PartyTarget
         elseif name and name:match("oUF_MyLayoutParty") then uConfig = C.Units.Party
         elseif name and name:match("oUF_MyLayoutBoss") then uConfig = C.Units.Boss
         elseif parent.unit == "player" then uConfig = C.Units.Player
@@ -990,6 +1030,14 @@ oUF:Factory(function(self)
     )
     ns.RegisterWithEditMode("Party", ns.party, "Party Frames", "Party Frames")
 
+    -- パーティターゲットフレームの生成
+    ns.partytarget = self:SpawnHeader("oUF_MyLayoutPartyTarget", nil, "custom [group:party, nogroup:raid] show; hide",
+        "showParty", true,
+        "yOffset", -60, -- Partyフレームと同じ間隔
+        "unitsuffix", "target"
+    )
+    ns.RegisterWithEditMode("PartyTarget", ns.partytarget, "Party Target Frames", "Party Frames")
+
     -- レイドフレームの生成
     -- Create a holder frame for positioning and Edit Mode
     ns.raid = CreateFrame("Frame", "oUF_MyLayoutRaidHolder", UIParent)
@@ -1024,6 +1072,15 @@ oUF:Factory(function(self)
         "yOffset", -10
     )
     ns.RegisterWithEditMode("MainTank", ns.maintank, "Main Tank Frames", "Raid Frames")
+
+    -- メインタンクターゲットフレームの生成
+    ns.maintanktarget = self:SpawnHeader("oUF_MyLayoutMainTankTarget", nil, "custom [group:raid] show; hide",
+        "showRaid", true,
+        "groupFilter", "MAINTANK",
+        "unitsuffix", "target",
+        "yOffset", -10
+    )
+    ns.RegisterWithEditMode("MainTankTarget", ns.maintanktarget, "Main Tank Target Frames", "Raid Frames")
 
     -- 初期ロード時に一度すべてのフレームを更新して位置と表示状態を確定
     ns.UpdateFrames()
