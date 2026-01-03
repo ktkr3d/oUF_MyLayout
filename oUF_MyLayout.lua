@@ -530,6 +530,9 @@ function ns.UpdateFrames()
             if obj.Health and obj.Health.ForceUpdate then
                 obj.Health:ForceUpdate()
             end
+            if obj.Power and obj.Power.ForceUpdate then
+                obj.Power:ForceUpdate()
+            end
         end
     end
 end
@@ -771,6 +774,16 @@ local function Shared(self, unit)
     Power.PostUpdate = function(power, unit, min, max)
         local C = ns.Config
         if power.bg then power.bg:SetColorTexture(unpack(C.Colors.PowerBg)) end
+
+        -- プレイヤー以外の場合、クラスカラーが適用されないため、パワータイプの色を適用する
+        -- これを行わないと、直前にターゲットしていたプレイヤーのクラスカラーが残ってしまう場合がある
+        if not UnitIsPlayer(unit) then
+            local _, ptoken = UnitPowerType(unit)
+            local color = oUF.colors.power[ptoken]
+            if color then
+                power:SetStatusBarColor(color[1], color[2], color[3])
+            end
+        end
     end
     
     -- oUFに登録
