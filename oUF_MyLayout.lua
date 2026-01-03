@@ -533,6 +533,9 @@ function ns.UpdateFrames()
             if obj.Power and obj.Power.ForceUpdate then
                 obj.Power:ForceUpdate()
             end
+            if obj.ClassPower and obj.ClassPower.ForceUpdate then
+                obj.ClassPower:ForceUpdate()
+            end
         end
     end
 end
@@ -900,10 +903,10 @@ local function Shared(self, unit)
     -- --------------------------------------------------------------------
     if unit == "player" then
         local ClassPower = {}
-        for i = 1, 6 do -- 最大6ポイント
+        for i = 1, 10 do -- 最大10ポイント (Rogueの7ポイント等に対応)
             local bar = CreateFrame("StatusBar", nil, self)
             bar:SetHeight(10)
-            bar:SetWidth((254 - (5 * 2)) / 6) -- フレーム幅に合わせて均等配置
+            bar:SetWidth((254 - (5 * 2)) / 6) -- 初期幅
 
             if i == 1 then
                 bar:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 5)
@@ -918,6 +921,21 @@ local function Shared(self, unit)
 
             ClassPower[i] = bar
         end
+
+        ClassPower.PostUpdate = function(element, cur, max, hasMaxChanged, powerType)
+            if hasMaxChanged then
+                local spacing = 2
+                local width = self:GetWidth()
+                local maxPoints = max or 5
+                if maxPoints == 0 then maxPoints = 5 end
+                
+                local barWidth = (width - (spacing * (maxPoints - 1))) / maxPoints
+                for i = 1, #element do
+                    element[i]:SetWidth(barWidth)
+                end
+            end
+        end
+
         self.ClassPower = ClassPower
     end
 
