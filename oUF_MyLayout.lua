@@ -710,7 +710,10 @@ end
 -- この関数内で、各ユニットフレーム（プレイヤー、ターゲット等）の見た目を定義します。
 local function Shared(self, unit)
     -- 1. フレームの基本設定
-    self:RegisterForClicks("AnyUp")
+    -- ADDON_ACTION_BLOCKED 回避: 戦闘中はRegisterForClicksを実行しない
+    if not InCombatLockdown() then
+        self:RegisterForClicks("AnyUp")
+    end
     self:SetScript("OnEnter", UnitFrame_OnEnter)
     self:SetScript("OnLeave", UnitFrame_OnLeave)
 
