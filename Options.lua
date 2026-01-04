@@ -338,6 +338,11 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
                 get = function() return config.NameTag end,
                 set = function(_, val) config.NameTag = val; ns.UpdateFrames() end,
             }
+            args.name.args.shortNameLength = {
+                type = "range", name = "Short Name Length", min = 1, max = 30, step = 1, order = 1.5,
+                get = function() return config.ShortNameLength or 10 end,
+                set = function(_, val) config.ShortNameLength = val; ns.UpdateFrames() end,
+            }
         end
 
         if config.NameText then

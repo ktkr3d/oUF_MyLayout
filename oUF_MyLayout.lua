@@ -38,7 +38,20 @@ oUF.Tags.Methods["my:shortname"] = function(unit)
     local name = UnitName(unit)
     if not name then return "" end
     
-    local maxLen = 10 -- 視覚的な文字数制限 (半角基準)
+    -- ユニットに応じた設定を取得
+    local C = ns.Config
+    local maxLen = 10 -- デフォルト値
+
+    if unit == "targettarget" then maxLen = C.Units.TargetTarget.ShortNameLength
+    elseif unit == "focus" then maxLen = C.Units.Focus.ShortNameLength
+    elseif unit:match("party%d?target") then maxLen = C.Units.PartyTarget.ShortNameLength
+    elseif unit:match("party") then maxLen = C.Units.Party.ShortNameLength
+    elseif unit:match("raid") then maxLen = C.Units.Raid.ShortNameLength
+    elseif unit:match("boss") then maxLen = C.Units.Boss.ShortNameLength
+    elseif unit:match("maintank") then maxLen = C.Units.MainTank.ShortNameLength -- maintanktarget等はここに含まれる可能性あり
+    end
+    maxLen = maxLen or 10
+
     local currentLen = 0
     local byteOffset = 1
     local len = #name
@@ -703,6 +716,7 @@ local function Shared(self, unit)
 
     -- 初期化用にunitをセット
     self.unit = unit
+
     local C = ns.Config
     local uConfig = C.Units.Default -- 初期構築用に必要
 
@@ -1091,7 +1105,9 @@ oUF:Factory(function(self)
     ns.partytarget = self:SpawnHeader("oUF_MyLayoutPartyTarget", nil, "custom [group:party, nogroup:raid] show; hide",
         "showParty", true,
         "yOffset", -60, -- Partyフレームと同じ間隔
-        "unitsuffix", "target"
+        "oUF-initialConfigFunction", [[
+            self:SetAttribute('unitsuffix', 'target')
+        ]]
     )
     ns.RegisterWithEditMode("PartyTarget", ns.partytarget, "Party Target Frames", "Party Frames")
 
@@ -1134,8 +1150,10 @@ oUF:Factory(function(self)
     ns.maintanktarget = self:SpawnHeader("oUF_MyLayoutMainTankTarget", nil, "custom [group:raid] show; hide",
         "showRaid", true,
         "groupFilter", "MAINTANK",
-        "unitsuffix", "target",
-        "yOffset", -10
+        "yOffset", -10,
+        "oUF-initialConfigFunction", [[
+            self:SetAttribute('unitsuffix', 'target')
+        ]]
     )
     ns.RegisterWithEditMode("MainTankTarget", ns.maintanktarget, "Main Tank Target Frames", "Raid Frames")
 
