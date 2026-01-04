@@ -33,15 +33,41 @@ oUF.Tags.Methods["my:perhp"] = function(unit)
 end
 oUF.Tags.Events["my:perhp"] = "UNIT_HEALTH UNIT_MAXHEALTH"
 
--- カスタムタグ: 短縮名 (8文字)
+-- カスタムタグ: 短縮名 (視覚的な幅で調整)
 oUF.Tags.Methods["my:shortname"] = function(unit)
     local name = UnitName(unit)
     if not name then return "" end
     
-    local lenFunc = string.utf8len or string.len
-    local subFunc = string.utf8sub or string.sub
-    if lenFunc(name) > 8 then
-        return subFunc(name, 1, 8) .. "..."
+    local maxLen = 10 -- 視覚的な文字数制限 (半角基準)
+    local currentLen = 0
+    local byteOffset = 1
+    local len = #name
+
+    while byteOffset <= len do
+        local b = string.byte(name, byteOffset)
+        local charLen = 1
+        local charWidth = 1
+
+        if b < 128 then
+            charLen = 1
+            charWidth = 1
+        elseif b >= 192 and b < 224 then
+            charLen = 2
+            charWidth = 1
+        elseif b >= 224 and b < 240 then
+            charLen = 3
+            charWidth = 2
+        elseif b >= 240 then
+            charLen = 4
+            charWidth = 2
+        end
+
+        if currentLen + charWidth > maxLen then
+            return string.sub(name, 1, byteOffset - 1) .. "..."
+        end
+
+        currentLen = currentLen + charWidth
+        byteOffset = byteOffset + charLen
     end
     return name
 end

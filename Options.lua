@@ -54,7 +54,7 @@ local nameTagValues = {
     ["[difficulty][level][shortclassification] [name]"] = "Full Level Name",
     ["[raidcolor][name] [dead][offline][my:afk]"] = "Name + Status",
     ["[name] [dead][offline]"] = "Name + Dead/Offline",
-    ["[raidcolor][my:shortname]"] = "Short Name (8 chars)",
+    ["[raidcolor][my:shortname]"] = "Short Name",
 }
 
 -- ユニットごとの設定グループを生成する関数
