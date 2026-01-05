@@ -777,7 +777,7 @@ local function Shared(self, unit)
         end
 
         local isFull = (min == max)
-        local shouldHideHealth = uConfig.HideHealthTextAtFull and isFull
+        local shouldHideHealth = uConfig.HideHealthTextAtFull and (isFull or min == 0)
 
         local tag = uConfig.HealthTag or "[perhp]%"
         if shouldHideHealth then

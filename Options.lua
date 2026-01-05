@@ -498,7 +498,7 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
     if key ~= "Pet" and key ~= "Raid" then
         args.health.args.hideAtFull = {
             type = "toggle",
-            name = "Hide at Full Health",
+            name = "Hide Full/Empty",
             order = 4,
             get = function() return config.HideHealthTextAtFull end,
             set = function(_, val) config.HideHealthTextAtFull = val; ns.UpdateFrames() end,
