@@ -45,6 +45,7 @@ local tagValues = {
     ["[curhp]"] = "Current (1234)",
     ["[curhp] / [maxhp]"] = "Current / Max (1234 / 2000)",
     ["[missinghp]"] = "Deficit (-500)",
+    ["[my:shortval]"] = "Short Value (10k)",
 }
 
 local nameTagValues = {

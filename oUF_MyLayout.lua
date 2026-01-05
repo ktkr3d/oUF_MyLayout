@@ -33,6 +33,24 @@ oUF.Tags.Methods["my:perhp"] = function(unit)
 end
 oUF.Tags.Events["my:perhp"] = "UNIT_HEALTH UNIT_MAXHEALTH"
 
+-- Custom Tag: Short Value (Human Readable)
+local function ShortValue(v)
+    if v >= 1e9 then
+        return string.format("%.1fb", v / 1e9)
+    elseif v >= 1e6 then
+        return string.format("%.1fm", v / 1e6)
+    elseif v >= 1e3 then
+        return string.format("%.1fk", v / 1e3)
+    else
+        return v
+    end
+end
+
+oUF.Tags.Methods["my:shortval"] = function(unit)
+    return ShortValue(UnitHealth(unit))
+end
+oUF.Tags.Events["my:shortval"] = "UNIT_HEALTH UNIT_MAXHEALTH"
+
 -- Custom Tag: Short Name (adjusted by visual width)
 oUF.Tags.Methods["my:shortname"] = function(unit)
     local name = UnitName(unit)
