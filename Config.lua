@@ -1,15 +1,15 @@
 local addonName, ns = ...
 
--- 設定のデフォルト値
+-- Default configuration values
 ns.Config = {
-    -- メディア設定 (テクスチャ、フォント)
+    -- Media settings (textures, fonts)
     Media = {
         HealthBar = "oUF_MyLayout Gradient",
         PowerBar = "oUF_MyLayout Minimalist",
         Font = "oUF_MyLayout Prototype",
     },
     
-    -- 色設定
+    -- Color settings
     Colors = {
         Health = {0.25, 0.25, 0.25},
         HealthBg = {0, 0, 0},
@@ -19,7 +19,7 @@ ns.Config = {
         CastbarBg = {0.2, 0.2, 0.2},
     },
 
-    -- ユニットごとの設定 (サイズ、位置など)
+    -- Unit specific settings (size, position, etc.)
     Units = {
         Player = {
             Enable = true,
@@ -34,7 +34,7 @@ ns.Config = {
             HealthTag = "[my:perhp]%",
             NameTag = "[raidcolor][name]",
             NameText = {
-                Font = nil, -- nilの場合はMedia.Fontを使用
+                Font = nil, -- Use Media.Font if nil
                 Size = 20,
                 Outline = "OUTLINE",
                 Point = "LEFT",
@@ -619,7 +619,7 @@ ns.Config = {
             },
             Position = {"TOPRIGHT", "UIParent", "BOTTOMRIGHT", -140, 320 },
         },
-        -- デフォルト (上記以外)
+        -- Default (other than above)
         Default = {
             Enable = true,
             Width = 254,

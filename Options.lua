@@ -3,7 +3,7 @@ local AC = LibStub("AceConfig-3.0")
 local ACD = LibStub("AceConfigDialog-3.0")
 local LSM = LibStub("LibSharedMedia-3.0")
 
--- SharedMediaのリストを取得するヘルパー関数
+-- Helper function to get SharedMedia list
 local function GetLSMList(type)
     local list = {}
     if LSM then
@@ -57,7 +57,7 @@ local nameTagValues = {
     ["[raidcolor][my:shortname]"] = "Short Name",
 }
 
--- ユニットごとの設定グループを生成する関数
+-- Function to create unit specific setting groups
 local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex, yIndex)
     local config = ns.Config.Units[key]
     xIndex = xIndex or 2
@@ -521,7 +521,7 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
     }
 end
 
--- 設定テーブルの定義
+-- Define configuration table
 ns.SetupOptions = function()
     local options = {
         type = "group",
@@ -530,7 +530,7 @@ ns.SetupOptions = function()
             about = {
                 type = "group",
                 name = "About",
-                order = 201, -- AceDBOptionsのProfilesはデフォルトでorder 200のため
+                order = 201, -- Because AceDBOptions Profiles defaults to order 200
                 args = {
                     title = {
                         type = "description",
@@ -614,8 +614,8 @@ ns.SetupOptions = function()
         },
     }
 
-    -- 設定テーブルを登録
+    -- Register options table
     AC:RegisterOptionsTable("oUF_MyLayout", options)
-    -- Blizzardのインターフェースオプションに追加
+    -- Add to Blizzard Interface Options
     ACD:AddToBlizOptions("oUF_MyLayout", "oUF_MyLayout")
 end

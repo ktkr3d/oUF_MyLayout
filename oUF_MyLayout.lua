@@ -1,6 +1,6 @@
 ﻿local addonName, ns = ...
 
--- oUFオブジェクトを取得（グローバルまたはネームスペースから）
+-- Get oUF object (global or from namespace)
 local oUF = ns.oUF or oUF
 
 local function deepcopy(orig)
@@ -17,7 +17,7 @@ local function deepcopy(orig)
     return copy
 end
 
--- カスタムタグ: AFK (赤色で表示)
+-- Custom Tag: AFK (displayed in red)
 oUF.Tags.Methods["my:afk"] = function(unit)
     if UnitIsAFK(unit) then
         return "|cffff0000AFK|r"
@@ -25,7 +25,7 @@ oUF.Tags.Methods["my:afk"] = function(unit)
 end
 oUF.Tags.Events["my:afk"] = "PLAYER_FLAGS_CHANGED UNIT_FLAGS"
 
--- カスタムタグ: HPパーセント (少数第一位)
+-- Custom Tag: HP Percent (1 decimal place)
 oUF.Tags.Methods["my:perhp"] = function(unit)
     local cur, max = UnitHealth(unit), UnitHealthMax(unit)
     if max == 0 then return 0 end
@@ -33,14 +33,14 @@ oUF.Tags.Methods["my:perhp"] = function(unit)
 end
 oUF.Tags.Events["my:perhp"] = "UNIT_HEALTH UNIT_MAXHEALTH"
 
--- カスタムタグ: 短縮名 (視覚的な幅で調整)
+-- Custom Tag: Short Name (adjusted by visual width)
 oUF.Tags.Methods["my:shortname"] = function(unit)
     local name = UnitName(unit)
     if not name then return "" end
     
-    -- ユニットに応じた設定を取得
+    -- Get settings according to unit
     local C = ns.Config
-    local maxLen = 10 -- デフォルト値
+    local maxLen = 10 -- Default value
 
     if unit == "targettarget" then maxLen = C.Units.TargetTarget.ShortNameLength
     elseif unit == "focus" then maxLen = C.Units.Focus.ShortNameLength
@@ -48,7 +48,7 @@ oUF.Tags.Methods["my:shortname"] = function(unit)
     elseif unit:match("party") then maxLen = C.Units.Party.ShortNameLength
     elseif unit:match("raid") then maxLen = C.Units.Raid.ShortNameLength
     elseif unit:match("boss") then maxLen = C.Units.Boss.ShortNameLength
-    elseif unit:match("maintank") then maxLen = C.Units.MainTank.ShortNameLength -- maintanktarget等はここに含まれる可能性あり
+    elseif unit:match("maintank") then maxLen = C.Units.MainTank.ShortNameLength -- maintanktarget etc. might be included here
     end
     maxLen = maxLen or 10
 
@@ -87,7 +87,7 @@ end
 oUF.Tags.Events["my:shortname"] = "UNIT_NAME_UPDATE"
 
 -- ------------------------------------------------------------------------
--- SharedMediaのサポート
+-- SharedMedia Support
 -- ------------------------------------------------------------------------
 local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
 local InternalMedia = {
@@ -111,7 +111,7 @@ local function GetMedia(mediaType, key)
 end
 
 -- ------------------------------------------------------------------------
--- フィルタ関数
+-- Filter Functions
 -- ------------------------------------------------------------------------
 local function CustomFilter(element, unit, button, name, icon, count, debuffType, duration, expirationTime, source, ...)
     if element.onlyShowPlayer then
@@ -121,7 +121,7 @@ local function CustomFilter(element, unit, button, name, icon, count, debuffType
 end
 
 -- ------------------------------------------------------------------------
--- フレーム更新関数 (Live Update)
+-- Frame Update Function (Live Update)
 -- ------------------------------------------------------------------------
 local function UpdateUnitFrame(self, isInit)
     local unit = self.unit
@@ -271,7 +271,7 @@ local function UpdateUnitFrame(self, isInit)
 
     if self.PortraitModel then
         local pConfig = uConfig.Portrait or {}
-        -- 互換性のため、もしbooleanならテーブルに変換
+        -- For compatibility, convert to table if boolean
         if type(pConfig) ~= "table" then
             pConfig = { Enable = pConfig }
         end
@@ -295,7 +295,7 @@ local function UpdateUnitFrame(self, isInit)
             if not isInit and self:IsElementEnabled("Portrait") then
                 self:DisableElement("Portrait")
             end
-            self.Portrait = nil -- oUFの自動検出対象から外す
+            self.Portrait = nil -- Remove from oUF auto-detection
             self.PortraitModel:Hide()
             if self.PortraitBg then self.PortraitBg:Hide() end
         end
@@ -339,7 +339,7 @@ local function UpdateUnitFrame(self, isInit)
         end
     end
 
-    -- アイコンの更新
+    -- Update Icons
     local iConfig = uConfig.Icons or {}
     local unitKey
     local name = self:GetName()
@@ -620,7 +620,7 @@ function ns.RegisterWithEditMode(unitKey, frame, displayName, category)
 end
 
 -- ------------------------------------------------------------------------
--- Blizzardフレームの非表示
+-- Hide Blizzard Frames
 -- ------------------------------------------------------------------------
 local hiddenParent = CreateFrame("Frame", nil, UIParent)
 hiddenParent:Hide()
@@ -639,12 +639,12 @@ local function HideBlizzardFrames()
 end
 
 -- ------------------------------------------------------------------------
--- 設定の初期化 (SavedVariables)
+-- Configuration Initialization (SavedVariables)
 -- ------------------------------------------------------------------------
 function ns:OnProfileChanged(event, database, newProfileKey)
-    -- プロファイルが変更されたら、ns.Configの参照先を更新
+    -- Update ns.Config reference when profile changes
     ns.Config = database.profile
-    -- フレームの見た目を更新
+    -- Update frame appearance
     ns.UpdateFrames()
 end
 
@@ -653,44 +653,44 @@ Loader:RegisterEvent("ADDON_LOADED")
 Loader:SetScript("OnEvent", function(self, event, addon)
     if addon ~= addonName then return end
 
-    -- TOCからバージョン情報を取得
+    -- Get version info from TOC
     ns.Version = C_AddOns.GetAddOnMetadata(addonName, "Version")
 
-    -- 依存ライブラリのチェック
+    -- Check dependency libraries
     if not C_AddOns.IsAddOnLoaded("Ace3") or not C_AddOns.IsAddOnLoaded("LibSharedMedia-3.0") or not C_AddOns.IsAddOnLoaded("oUF") then
         print("|cff00ff00oUF_MyLayout:|r |cffff0000Error:|r Required libraries (Ace3, LibSharedMedia-3.0, oUF) are missing or not enabled.")
         return
     end
 
-    -- AceDBの初期化
-    -- Config.luaで定義した ns.Config をデフォルト値として使用
+    -- Initialize AceDB
+    -- Use ns.Config defined in Config.lua as default values
     ns.Defaults = ns.Config -- Save reference to the original defaults
     local defaults = {
         profile = ns.Defaults
     }
     ns.db = LibStub("AceDB-3.0"):New("oUF_MyLayoutDB", defaults, true)
 
-    -- プロファイル変更時のコールバック登録
+    -- Register callbacks for profile changes
     ns.db.RegisterCallback(ns, "OnProfileChanged", "OnProfileChanged")
     ns.db.RegisterCallback(ns, "OnProfileCopied", "OnProfileChanged")
     ns.db.RegisterCallback(ns, "OnProfileReset", "OnProfileChanged")
 
-    -- 現在のプロファイルを ns.Config にセット
+    -- Set current profile to ns.Config
     ns.Config = ns.db.profile -- ns.Config now points to the live profile
 
-    -- 保存された設定を適用するためにフレームを更新
+    -- Update frames to apply saved settings
     ns.UpdateFrames()
 
-    -- 設定画面の初期化
+    -- Initialize options screen
     if ns.SetupOptions then ns.SetupOptions() end
 
-    -- BlizzardのRaidフレームを非表示にする
+    -- Hide Blizzard Raid Frames
     HideBlizzardFrames()
 
     self:UnregisterEvent("ADDON_LOADED")
 end)
 
--- スラッシュコマンド (/mylayout reset)
+-- Slash Commands (/mylayout reset)
 SLASH_OUF_MYLAYOUT1 = "/mylayout"
 SlashCmdList["OUF_MYLAYOUT"] = function(msg)
     if msg == "reset" then
@@ -705,41 +705,41 @@ SlashCmdList["OUF_MYLAYOUT"] = function(msg)
 end
 
 -- ------------------------------------------------------------------------
--- スタイル定義関数 (Shared Style Function)
+-- Style Definition Function (Shared Style Function)
 -- ------------------------------------------------------------------------
--- この関数内で、各ユニットフレーム（プレイヤー、ターゲット等）の見た目を定義します。
+-- Define the appearance of each unit frame (player, target, etc.) within this function.
 local function Shared(self, unit)
-    -- 1. フレームの基本設定
-    -- ADDON_ACTION_BLOCKED 回避: 戦闘中はRegisterForClicksを実行しない
+    -- 1. Basic Frame Settings
+    -- Avoid ADDON_ACTION_BLOCKED: Do not execute RegisterForClicks during combat
     if not InCombatLockdown() then
         self:RegisterForClicks("AnyUp")
     end
     self:SetScript("OnEnter", UnitFrame_OnEnter)
     self:SetScript("OnLeave", UnitFrame_OnLeave)
 
-    -- 初期化用にunitをセット
+    -- Set unit for initialization
     self.unit = unit
 
     local C = ns.Config
-    local uConfig = C.Units.Default -- 初期構築用に必要
+    local uConfig = C.Units.Default -- Required for initial construction
 
-    -- 背景の設定 (オプション)
+    -- Background settings (optional)
     local bg = self:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
-    bg:SetColorTexture(0, 0, 0, 1) -- 半透明の黒
+    bg:SetColorTexture(0, 0, 0, 1) -- Semi-transparent black
 
     -- --------------------------------------------------------------------
-    -- 2. Health Bar (HPバー) の作成
+    -- 2. Create Health Bar
     -- --------------------------------------------------------------------
     local Health = CreateFrame("StatusBar", nil, self)
     Health:SetPoint("TOPLEFT", self, "TOPLEFT", 2, -2)
     Health:SetPoint("TOPRIGHT", self, "TOPRIGHT", -2, -2)
 
-    -- HPバーの背景
+    -- Health Bar Background
     local HealthBg = Health:CreateTexture(nil, "BACKGROUND")
     HealthBg:SetAllPoints(true)
 
-    -- オプション: クラスカラーや敵対反応カラーを有効化
+    -- Option: Enable class colors or reaction colors
     Health.colorTapping = true
     Health.colorDisconnected = true
     Health.colorClass = false
@@ -750,8 +750,8 @@ local function Shared(self, unit)
         local C = ns.Config
         if health.bg then health.bg:SetColorTexture(unpack(C.Colors.HealthBg)) end
 
-        -- 前景色（HPバーの色）を適用
-        -- Tapping(権利なし)やDisconnected(オフライン)の場合はoUFが色を設定しているので上書きしない
+        -- Apply foreground color (Health Bar color)
+        -- Do not overwrite if Tapping (no rights) or Disconnected (offline) as oUF sets the color
         local isTapped = health.colorTapping and not UnitPlayerControlled(unit) and UnitIsTapDenied(unit)
         local isDisconnected = health.colorDisconnected and not UnitIsConnected(unit)
         if not isTapped and not isDisconnected then
@@ -801,11 +801,11 @@ local function Shared(self, unit)
         parent.HpVal:Show()
     end
 
-    -- oUFに登録 (self.Healthに代入することでoUFが自動更新を行う)
+    -- Register with oUF (oUF automatically updates by assigning to self.Health)
     self.Health = Health
 
     -- --------------------------------------------------------------------
-    -- 3. Power Bar (マナ/リソースバー) の作成
+    -- 3. Create Power Bar (Mana/Resource Bar)
     -- --------------------------------------------------------------------
     local Power = CreateFrame("StatusBar", nil, self)
     Power:SetPoint("TOPLEFT", Health, "BOTTOMLEFT", 0, -2)
@@ -814,15 +814,15 @@ local function Shared(self, unit)
     local PowerBg = Power:CreateTexture(nil, "BACKGROUND")
     PowerBg:SetAllPoints(true)
 
-    Power.colorClass = true -- クラスカラー
+    Power.colorClass = true -- Class Color
     Power.bg = PowerBg
     
     Power.PostUpdate = function(power, unit, min, max)
         local C = ns.Config
         if power.bg then power.bg:SetColorTexture(unpack(C.Colors.PowerBg)) end
 
-        -- プレイヤー以外の場合、クラスカラーが適用されないため、パワータイプの色を適用する
-        -- これを行わないと、直前にターゲットしていたプレイヤーのクラスカラーが残ってしまう場合がある
+        -- Apply power type color for non-players since class color is not applied
+        -- If not done, the class color of the previously targeted player may remain
         if not UnitIsPlayer(unit) then
             local _, ptoken = UnitPowerType(unit)
             local color = oUF.colors.power[ptoken]
@@ -832,44 +832,44 @@ local function Shared(self, unit)
         end
     end
     
-    -- oUFに登録
+    -- Register with oUF
     self.Power = Power
 
     -- --------------------------------------------------------------------
-    -- 4. テキスト情報 (名前とHP値)
+    -- 4. Text Information (Name and HP Value)
     -- --------------------------------------------------------------------
-    -- 名前
+    -- Name
     local Name = Health:CreateFontString(nil, "OVERLAY")
     self.Name = Name
 
-    -- HP数値
+    -- HP Value
     local HpVal = Health:CreateFontString(nil, "OVERLAY")
     self.HpVal = HpVal
 
     -- --------------------------------------------------------------------
-    -- 5. Portrait (3Dモデル)
+    -- 5. Portrait (3D Model)
     -- --------------------------------------------------------------------
     local Portrait = CreateFrame("PlayerModel", nil, self)
     Portrait:SetSize(150, 43)
-    Portrait:SetPoint("LEFT", self, "LEFT", 2, 0) -- フレームの右側に配置
+    Portrait:SetPoint("LEFT", self, "LEFT", 2, 0) -- Position on the left side of the frame
 
-    -- 背景 (オプション)
+    -- Background (Optional)
     local PortraitBg = self:CreateTexture(nil, "BACKGROUND")
     PortraitBg:SetAllPoints(Portrait)
     PortraitBg:SetColorTexture(0, 0, 0, 0.5)
 
     self.Portrait = Portrait
     self.PortraitBg = PortraitBg
-    self.PortraitModel = Portrait -- 参照を保持しておく
+    self.PortraitModel = Portrait -- Keep reference
 
     -- --------------------------------------------------------------------
-    -- 6. Raid Icon (レイドアイコン)
+    -- 6. Raid Icon
     -- --------------------------------------------------------------------
     local RaidTargetIndicator = Health:CreateTexture(nil, "OVERLAY")
     self.RaidTargetIndicator = RaidTargetIndicator
 
     -- --------------------------------------------------------------------
-    -- 7. Castbar (詠唱バー)
+    -- 7. Castbar
     -- --------------------------------------------------------------------
     local name = self:GetName()
     if not (name and (name:match("oUF_MyLayoutRaid") or name:match("oUF_MyLayoutBoss"))) and unit ~= "targettarget" then
@@ -878,17 +878,17 @@ local function Shared(self, unit)
         local CastbarBg = Castbar:CreateTexture(nil, "BACKGROUND")
         CastbarBg:SetAllPoints(true)
 
-        -- 呪文名
+        -- Spell Name
         local CastbarText = Castbar:CreateFontString(nil, "OVERLAY")
         CastbarText:SetPoint("LEFT", Castbar, "LEFT", 2, 0)
 
-        -- アイコン
+        -- Icon
         local CastbarIcon = Castbar:CreateTexture(nil, "OVERLAY")
         CastbarIcon:SetSize(20, 20)
         CastbarIcon:SetPoint("RIGHT", Castbar, "LEFT", -5, 0)
         CastbarIcon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 
-        -- 詠唱時間
+        -- Cast Time
         local CastbarTime = Castbar:CreateFontString(nil, "OVERLAY")
         CastbarTime:SetPoint("RIGHT", Castbar, "RIGHT", -2, 0)
 
@@ -896,7 +896,7 @@ local function Shared(self, unit)
         Castbar.Text = CastbarText
         Castbar.Icon = CastbarIcon
         Castbar.Time = CastbarTime
-        Castbar.timeToHold = 0.5 -- 完了後に少し表示を残す
+        Castbar.timeToHold = 0.5 -- Keep visible for a bit after completion
         
         Castbar.PostCastStart = function(castbar, unit)
             local C = ns.Config
@@ -910,19 +910,19 @@ local function Shared(self, unit)
     end
 
     -- --------------------------------------------------------------------
-    -- 8. Role Icon (ロールアイコン)
+    -- 8. Role Icon
     -- --------------------------------------------------------------------
     local GroupRoleIndicator = Health:CreateTexture(nil, "OVERLAY")
     self.GroupRoleIndicator = GroupRoleIndicator
 
     -- --------------------------------------------------------------------
-    -- 9. Ready Check Icon (レディチェックアイコン)
+    -- 9. Ready Check Icon
     -- --------------------------------------------------------------------
     local ReadyCheckIndicator = Health:CreateTexture(nil, "OVERLAY")
     self.ReadyCheckIndicator = ReadyCheckIndicator
 
     -- --------------------------------------------------------------------
-    -- 10. Rest Icon (休息アイコン)
+    -- 10. Rest Icon
     -- --------------------------------------------------------------------
     if unit == "player" then
         local RestingIndicator = Health:CreateTexture(nil, "OVERLAY")
@@ -932,7 +932,7 @@ local function Shared(self, unit)
     end
 
     -- --------------------------------------------------------------------
-    -- 11. Combat Icon (戦闘アイコン)
+    -- 11. Combat Icon
     -- --------------------------------------------------------------------
     if unit == "player" then
         local CombatIndicator = Health:CreateTexture(nil, "OVERLAY")
@@ -942,14 +942,14 @@ local function Shared(self, unit)
     end
 
     -- --------------------------------------------------------------------
-    -- 12. Class Power (コンボポイント等)
+    -- 12. Class Power (Combo Points etc.)
     -- --------------------------------------------------------------------
     if unit == "player" then
         local ClassPower = {}
-        for i = 1, 10 do -- 最大10ポイント (Rogueの7ポイント等に対応)
+        for i = 1, 10 do -- Max 10 points (Supports Rogue's 7 points etc.)
             local bar = CreateFrame("StatusBar", nil, self)
             bar:SetHeight(10)
-            bar:SetWidth((254 - (5 * 2)) / 6) -- 初期幅
+            bar:SetWidth((254 - (5 * 2)) / 6) -- Initial width
 
             if i == 1 then
                 bar:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 5)
@@ -983,14 +983,14 @@ local function Shared(self, unit)
     end
 
     -- --------------------------------------------------------------------
-    -- 13. Runes (デスナイトのルーン)
+    -- 13. Runes (Death Knight Runes)
     -- --------------------------------------------------------------------
     if unit == "player" and select(2, UnitClass("player")) == "DEATHKNIGHT" then
         local Runes = {}
         for i = 1, 6 do
             local rune = CreateFrame("StatusBar", nil, self)
             rune:SetHeight(10)
-            rune:SetWidth((254 - (5 * 2)) / 6) -- ClassPowerと同じ幅計算
+            rune:SetWidth((254 - (5 * 2)) / 6) -- Calculate width same as ClassPower
 
             if i == 1 then
                 rune:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 5)
@@ -1027,14 +1027,14 @@ local function Shared(self, unit)
     end
 
     -- --------------------------------------------------------------------
-    -- 15. Leader Icon (リーダーアイコン)
+    -- 15. Leader Icon
     -- --------------------------------------------------------------------
     local LeaderIndicator = Health:CreateTexture(nil, "OVERLAY")
     LeaderIndicator:SetTexture("Interface\\GroupFrame\\UI-Group-LeaderIcon")
     self.LeaderIndicator = LeaderIndicator
 
     -- --------------------------------------------------------------------
-    -- 16. Assistant Icon (アシスタントアイコン)
+    -- 16. Assistant Icon
     -- --------------------------------------------------------------------
     local AssistantIndicator = Health:CreateTexture(nil, "OVERLAY")
     AssistantIndicator:SetTexture("Interface\\GroupFrame\\UI-Group-AssistantIcon")
@@ -1062,14 +1062,14 @@ local function Shared(self, unit)
     Debuffs.CustomFilter = CustomFilter
     self.Debuffs = Debuffs
 
-    -- スタイル適用 (初期化)
+    -- Apply style (Initialization)
     UpdateUnitFrame(self, true)
 end
 
 -- ------------------------------------------------------------------------
--- ファクトリー (Factory)
+-- Factory
 -- ------------------------------------------------------------------------
--- スタイルを登録し、実際にフレームを生成(Spawn)します。
+-- Register style and spawn frames.
 
 oUF:RegisterStyle("MyLayout", Shared)
 
@@ -1077,44 +1077,44 @@ oUF:Factory(function(self)
     local C = ns.Config
     self:SetActiveStyle("MyLayout")
 
-    -- プレイヤーフレームの生成と配置
+    -- Spawn and position Player frame
     ns.player = self:Spawn("player")
     ns.RegisterWithEditMode("Player", ns.player, "Player", "Unit Frames")
 
-    -- ターゲットフレームの生成と配置
+    -- Spawn and position Target frame
     ns.target = self:Spawn("target")
     ns.RegisterWithEditMode("Target", ns.target, "Target", "Unit Frames")
 
-    -- ターゲットのターゲットフレームの生成
+    -- Spawn Target's Target frame
     ns.targettarget = self:Spawn("targettarget")
     ns.RegisterWithEditMode("TargetTarget", ns.targettarget, "Target's Target", "Unit Frames")
 
-    -- ペットフレームの生成と配置
+    -- Spawn and position Pet frame
     ns.pet = self:Spawn("pet")
     ns.RegisterWithEditMode("Pet", ns.pet, "Pet", "Unit Frames")
 
-    -- フォーカスフレームの生成
+    -- Spawn Focus frame
     ns.focus = self:Spawn("focus")
     ns.RegisterWithEditMode("Focus", ns.focus, "Focus", "Unit Frames")
 
-    -- パーティフレームの生成
+    -- Spawn Party frame
     ns.party = self:SpawnHeader("oUF_MyLayoutParty", nil, "custom [group:party, nogroup:raid] show; hide",
         "showParty", true,
-        "yOffset", -60 -- 垂直方向に並べる
+        "yOffset", -60 -- Arrange vertically
     )
     ns.RegisterWithEditMode("Party", ns.party, "Party Frames", "Party Frames")
 
-    -- パーティターゲットフレームの生成
+    -- Spawn Party Target frame
     ns.partytarget = self:SpawnHeader("oUF_MyLayoutPartyTarget", nil, "custom [group:party, nogroup:raid] show; hide",
         "showParty", true,
-        "yOffset", -60, -- Partyフレームと同じ間隔
+        "yOffset", -60, -- Same spacing as Party frame
         "oUF-initialConfigFunction", [[
             self:SetAttribute('unitsuffix', 'target')
         ]]
     )
     ns.RegisterWithEditMode("PartyTarget", ns.partytarget, "Party Target Frames", "Party Frames")
 
-    -- レイドフレームの生成
+    -- Spawn Raid frame
     -- Create a holder frame for positioning and Edit Mode
     ns.raid = CreateFrame("Frame", "oUF_MyLayoutRaidHolder", UIParent)
     ns.raid:SetSize(100, 100) -- Size updated in UpdateFrames
@@ -1134,14 +1134,14 @@ oUF:Factory(function(self)
         )
     end
 
-    -- ボスフレームの生成 (Boss1 - Boss5)
+    -- Spawn Boss frames (Boss1 - Boss5)
     ns.boss = {}
     for i = 1, 5 do
         ns.boss[i] = self:Spawn("boss" .. i)
     end
     ns.RegisterWithEditMode("Boss", ns.boss[1], "Boss Frames", "Boss Frames")
 
-    -- メインタンクフレームの生成
+    -- Spawn Main Tank frame
     ns.maintank = self:SpawnHeader("oUF_MyLayoutMainTank", nil, "custom [group:raid] show; hide",
         "showRaid", true,
         "groupFilter", "MAINTANK",
@@ -1149,7 +1149,7 @@ oUF:Factory(function(self)
     )
     ns.RegisterWithEditMode("MainTank", ns.maintank, "Main Tank Frames", "Raid Frames")
 
-    -- メインタンクターゲットフレームの生成
+    -- Spawn Main Tank Target frame
     ns.maintanktarget = self:SpawnHeader("oUF_MyLayoutMainTankTarget", nil, "custom [group:raid] show; hide",
         "showRaid", true,
         "groupFilter", "MAINTANK",
@@ -1160,6 +1160,6 @@ oUF:Factory(function(self)
     )
     ns.RegisterWithEditMode("MainTankTarget", ns.maintanktarget, "Main Tank Target Frames", "Raid Frames")
 
-    -- 初期ロード時に一度すべてのフレームを更新して位置と表示状態を確定
+    -- Update all frames once at initial load to finalize positions and visibility
     ns.UpdateFrames()
 end)
