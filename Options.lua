@@ -528,6 +528,18 @@ ns.SetupOptions = function()
         type = "group",
         name = "oUF_MyLayout",
         args = {
+            general = {
+                type = "group",
+                name = "General",
+                order = 10,
+                args = {
+                    disablePortraitsInRaid = {
+                        type = "toggle", name = "Disable Portraits in Raid", order = 1, width = "full",
+                        get = function() return ns.Config.General.DisablePortraitsInRaid end,
+                        set = function(_, val) ns.Config.General.DisablePortraitsInRaid = val; ns.UpdateFrames() end,
+                    },
+                },
+            },
             about = {
                 type = "group",
                 name = "About",

@@ -294,7 +294,12 @@ local function UpdateUnitFrame(self, isInit)
             pConfig = { Enable = pConfig }
         end
 
-        if pConfig.Enable then
+        local isPortraitEnabled = pConfig.Enable
+        if ns.Config.General and ns.Config.General.DisablePortraitsInRaid and IsInRaid() then
+            isPortraitEnabled = false
+        end
+
+        if isPortraitEnabled then
             self.Portrait = self.PortraitModel
             self.Portrait:Show()
             if self.PortraitBg then self.PortraitBg:Show() end
@@ -596,6 +601,19 @@ function ns.UpdateFrames()
         end
     end
 end
+
+-- Monitor Raid State for Portrait Override
+local wasInRaid = IsInRaid()
+local RosterMonitor = CreateFrame("Frame")
+RosterMonitor:RegisterEvent("GROUP_ROSTER_UPDATE")
+RosterMonitor:RegisterEvent("PLAYER_ENTERING_WORLD")
+RosterMonitor:SetScript("OnEvent", function(self)
+    local isInRaid = IsInRaid()
+    if isInRaid ~= wasInRaid then
+        wasInRaid = isInRaid
+        ns.UpdateFrames()
+    end
+end)
 
 -- ------------------------------------------------------------------------
 -- Edit Mode Integration

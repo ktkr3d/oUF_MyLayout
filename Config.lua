@@ -2,6 +2,11 @@ local addonName, ns = ...
 
 -- Default configuration values
 ns.Config = {
+    -- Global settings
+    General = {
+        DisablePortraitsInRaid = false,
+    },
+
     -- Media settings (textures, fonts)
     Media = {
         HealthBar = "oUF_MyLayout Gradient",
