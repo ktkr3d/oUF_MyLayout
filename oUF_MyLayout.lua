@@ -191,7 +191,7 @@ local function UpdateUnitFrame(self, isInit)
             local nOutline = nConfig.Outline or "OUTLINE"
             self.Name:SetFont(nFont, nSize, nOutline)
 
-            -- 位置設定がある場合のみ適用 (Healthバーを基準とする)
+            -- Apply only if position settings exist (relative to Health bar)
             if nConfig.Point then
                 self.Name:ClearAllPoints()
                 self.Name:SetPoint(nConfig.Point, self.Health, nConfig.Point, nConfig.X or 0, nConfig.Y or 0)
@@ -731,11 +731,11 @@ SLASH_OUF_MYLAYOUT1 = "/mylayout"
 SlashCmdList["OUF_MYLAYOUT"] = function(msg)
     if msg == "reset" then
         ns.db:ResetProfile()
-        print("|cff00ff00oUF_MyLayout:|r 現在のプロファイル設定をリセットしました。")
+        print("|cff00ff00oUF_MyLayout:|r Current profile settings have been reset.")
     elseif msg == "config" then
         LibStub("AceConfigDialog-3.0"):Open("oUF_MyLayout")
     else
-        print("|cff00ff00oUF_MyLayout:|r コマンド: /mylayout config, /mylayout reset")
+        print("|cff00ff00oUF_MyLayout:|r Commands: /mylayout config, /mylayout reset")
         LibStub("AceConfigDialog-3.0"):Open("oUF_MyLayout")
     end
 end
