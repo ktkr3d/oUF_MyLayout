@@ -491,14 +491,15 @@ ns.Config = {
                 Size = 16,
                 Outline = "OUTLINE",
                 Point = "LEFT",
-                X = 5
+                X = 5,
+                Y = -3,
             },
             HealthText = {
                 Size = 16,
                 Outline = "OUTLINE",
                 Point = "RIGHT",
                 X = 0,
-                Y = 0,
+                Y = -3,
             },
             Portrait = {
                 Enable = false,
@@ -508,7 +509,7 @@ ns.Config = {
                 Y = 0,
             },
             Icons = {
-                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
+                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 10 },
                 GroupRole = { Enable = false, Size = 32, Point = "TOPRIGHT", X = 10, Y = 10 },
                 ReadyCheck = { Enable = false, Size = 24, Point = "CENTER", X = 0, Y = 0 },
                 Leader = { Enable = false, Size = 32, Point = "TOPLEFT", X = -10, Y = 10 },
@@ -547,14 +548,15 @@ ns.Config = {
                 Size = 16,
                 Outline = "OUTLINE",
                 Point = "LEFT",
-                X = 5
+                X = 5,
+                Y = -3,
             },
             HealthText = {
                 Size = 16,
                 Outline = "OUTLINE",
                 Point = "RIGHT",
                 X = -5,
-                Y = 0,
+                Y = -3,
             },
             Portrait = {
                 Enable = false,
@@ -564,7 +566,7 @@ ns.Config = {
                 Y = 0,
             },
             Icons = {
-                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
+                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 10 },
                 GroupRole = { Enable = true, Size = 20, Point = "TOPRIGHT", X = 10, Y = 10 },
                 ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
                 Leader = { Enable = true, Size = 20, Point = "TOPLEFT", X = -10, Y = 10 },
@@ -603,17 +605,22 @@ ns.Config = {
                 Size = 14,
                 Outline = "OUTLINE",
                 Point = "LEFT",
-                X = 5
+                X = 5,
+                Y = -3,
             },
             HealthText = {
                 Size = 14,
                 Outline = "OUTLINE",
                 Point = "RIGHT",
                 X = -5,
-                Y = 0,
+                Y = -3,
             },
             Icons = {
-                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 0 },
+                RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 10 },
+                GroupRole = { Enable = true, Size = 20, Point = "TOPRIGHT", X = 10, Y = 10 },
+                ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
+                Leader = { Enable = true, Size = 20, Point = "TOPLEFT", X = -10, Y = 10 },
+                Assistant = { Enable = true, Size = 20, Point = "TOPLEFT", X = -10, Y = 10 },
             },
             Buffs = {
                 Enable = false,
