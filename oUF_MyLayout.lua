@@ -138,6 +138,33 @@ local function CustomFilter(element, unit, button, name, icon, count, debuffType
     return true
 end
 
+-- Helper function to update icons (Moved out to avoid closure creation)
+local function UpdateIcon(self, icon, iconKey, iConfig, defaultIconsConfig)
+    if not icon then return end
+
+    local liveIconConfig = iConfig[iconKey] or {}
+    local defaultIconConfig = defaultIconsConfig[iconKey] or {}
+
+    local isEnabled = liveIconConfig.Enable
+    if isEnabled == nil then isEnabled = defaultIconConfig.Enable end
+
+    local size = liveIconConfig.Size or defaultIconConfig.Size
+    local point = liveIconConfig.Point or defaultIconConfig.Point
+    local x = liveIconConfig.X
+    if x == nil then x = defaultIconConfig.X end
+    local y = liveIconConfig.Y
+    if y == nil then y = defaultIconConfig.Y end
+
+    if isEnabled and size and point and x ~= nil and y ~= nil then
+        icon:SetAlpha(1)
+        icon:SetSize(size, size)
+        icon:ClearAllPoints()
+        icon:SetPoint(point, self.Health, point, x, y)
+    else
+        icon:SetAlpha(0)
+    end
+end
+
 -- ------------------------------------------------------------------------
 -- Frame Update Function (Live Update)
 -- ------------------------------------------------------------------------
@@ -379,42 +406,15 @@ local function UpdateUnitFrame(self, isInit)
     else unitKey = "Default" end
     local defaultIconsConfig = (ns.Defaults.Units[unitKey] and ns.Defaults.Units[unitKey].Icons) or {}
 
-    local function UpdateIcon(icon, iconKey)
-        if not icon then return end
+    UpdateIcon(self, self.RaidTargetIndicator, "RaidTarget", iConfig, defaultIconsConfig)
+    UpdateIcon(self, self.GroupRoleIndicator, "GroupRole", iConfig, defaultIconsConfig)
+    UpdateIcon(self, self.ReadyCheckIndicator, "ReadyCheck", iConfig, defaultIconsConfig)
+    UpdateIcon(self, self.LeaderIndicator, "Leader", iConfig, defaultIconsConfig)
 
-        local liveIconConfig = iConfig[iconKey] or {}
-        local defaultIconConfig = defaultIconsConfig[iconKey] or {}
-
-        local isEnabled = liveIconConfig.Enable
-        if isEnabled == nil then isEnabled = defaultIconConfig.Enable end
-
-        local size = liveIconConfig.Size or defaultIconConfig.Size
-        local point = liveIconConfig.Point or defaultIconConfig.Point
-        local x = liveIconConfig.X
-        if x == nil then x = defaultIconConfig.X end
-        local y = liveIconConfig.Y
-        if y == nil then y = defaultIconConfig.Y end
-
-        if isEnabled and size and point and x ~= nil and y ~= nil then
-            icon:SetAlpha(1)
-            icon:SetSize(size, size)
-            icon:ClearAllPoints()
-            icon:SetPoint(point, self.Health, point, x, y)
-        else
-            icon:SetAlpha(0)
-        end
-    end
-
-    UpdateIcon(self.RaidTargetIndicator, "RaidTarget")
-    UpdateIcon(self.GroupRoleIndicator, "GroupRole")
-    UpdateIcon(self.ReadyCheckIndicator, "ReadyCheck")
-    UpdateIcon(self.LeaderIndicator, "Leader")
-
-
-    UpdateIcon(self.AssistantIndicator, "Assistant")
+    UpdateIcon(self, self.AssistantIndicator, "Assistant", iConfig, defaultIconsConfig)
     if self.unit == "player" then
-        UpdateIcon(self.RestingIndicator, "Resting")
-        UpdateIcon(self.CombatIndicator, "Combat")
+        UpdateIcon(self, self.RestingIndicator, "Resting", iConfig, defaultIconsConfig)
+        UpdateIcon(self, self.CombatIndicator, "Combat", iConfig, defaultIconsConfig)
     end
 end
 
