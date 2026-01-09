@@ -500,11 +500,11 @@ function ns.UpdateFrames()
                 
                 -- Update holder size for Edit Mode
                 local spacing = 5
-                local totalWidth = (C.Units.Raid.Width * 5) + (spacing * 4)
+                local totalWidth = (C.Units.Raid.Width * 8) + (spacing * 7)
                 local totalHeight = (C.Units.Raid.Height * 5) + (spacing * 4)
                 ns.raid:SetSize(totalWidth, totalHeight)
 
-                for i = 1, 5 do
+                for i = 1, 8 do
                     local header = ns.raidHeaders[i]
                     if header then
                         local visibility = "custom "
@@ -534,7 +534,7 @@ function ns.UpdateFrames()
                 end
             else
                 ns.raid:Hide()
-                for i = 1, 5 do
+                for i = 1, 8 do
                     local header = ns.raidHeaders[i]
                     if header then
                         UnregisterStateDriver(header, "visibility")
@@ -1157,7 +1157,7 @@ oUF:Factory(function(self)
     ns.RegisterWithEditMode("Raid", ns.raid, "Raid Frames", "Raid Frames")
 
     ns.raidHeaders = {}
-    for i = 1, 5 do
+    for i = 1, 8 do
         ns.raidHeaders[i] = self:SpawnHeader("oUF_MyLayoutRaid" .. i, nil, "custom [group:raid] show; hide",
             "showRaid", true,
             "xOffset", 5,
