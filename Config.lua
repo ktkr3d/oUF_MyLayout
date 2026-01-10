@@ -4,7 +4,7 @@ local addonName, ns = ...
 ns.Config = {
     -- Global settings
     General = {
-        DisablePortraitsInRaid = false,
+        DisablePortraitsInRaid = true,
     },
 
     -- Media settings (textures, fonts)
