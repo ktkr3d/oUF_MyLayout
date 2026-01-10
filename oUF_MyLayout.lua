@@ -585,18 +585,18 @@ function ns.UpdateFrames()
                 ns.maintanktarget:Hide()
             end
         end
-    end
-    for _, obj in pairs(oUF.objects) do
-        if obj.style == "MyLayout" then
-            UpdateUnitFrame(obj)
-            if obj.Health and obj.Health.ForceUpdate then
-                obj.Health:ForceUpdate()
-            end
-            if obj.Power and obj.Power.ForceUpdate then
-                obj.Power:ForceUpdate()
-            end
-            if obj.ClassPower and obj.ClassPower.ForceUpdate then
-                obj.ClassPower:ForceUpdate()
+        for _, obj in pairs(oUF.objects) do
+            if obj.style == "MyLayout" then
+                UpdateUnitFrame(obj)
+                if obj.Health and obj.Health.ForceUpdate then
+                    obj.Health:ForceUpdate()
+                end
+                if obj.Power and obj.Power.ForceUpdate then
+                    obj.Power:ForceUpdate()
+                end
+                if obj.ClassPower and obj.ClassPower.ForceUpdate then
+                    obj.ClassPower:ForceUpdate()
+                end
             end
         end
     end
