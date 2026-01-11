@@ -189,7 +189,9 @@ local function UpdateUnitFrame(self, isInit)
 
     local fontMain = GetMedia("font", C.Media.Font)
 
-    self:SetSize(uConfig.Width, uConfig.Height)
+    if not InCombatLockdown() then
+        self:SetSize(uConfig.Width, uConfig.Height)
+    end
 
     if self.Health then
         self.Health:SetHeight(uConfig.HealthHeight)
@@ -475,6 +477,8 @@ function ns.UpdateFrames()
         if ns.party then
             if C.Units.Party.Enable then
                 ns.party:Show()
+                ns.party:SetAttribute("initial-width", C.Units.Party.Width)
+                ns.party:SetAttribute("initial-height", C.Units.Party.Height)
                 ns.party:ClearAllPoints()
                 ns.party:SetPoint(unpack(C.Units.Party.Position))
             else
@@ -485,6 +489,8 @@ function ns.UpdateFrames()
         if ns.partytarget then
             if C.Units.PartyTarget.Enable then
                 ns.partytarget:Show()
+                ns.partytarget:SetAttribute("initial-width", C.Units.PartyTarget.Width)
+                ns.partytarget:SetAttribute("initial-height", C.Units.PartyTarget.Height)
                 ns.partytarget:ClearAllPoints()
                 ns.partytarget:SetPoint(unpack(C.Units.PartyTarget.Position))
             else
@@ -515,6 +521,9 @@ function ns.UpdateFrames()
                             visibility = visibility .. "[group:raid] show; "
                             header:SetAttribute("showParty", false)
                         end
+
+                        header:SetAttribute("initial-width", C.Units.Raid.Width)
+                        header:SetAttribute("initial-height", C.Units.Raid.Height)
 
                         if C.Units.Raid.ShowSolo then
                             visibility = visibility .. "[nogroup] show; "
@@ -569,6 +578,8 @@ function ns.UpdateFrames()
         if ns.maintank then
             if C.Units.MainTank.Enable then
                 ns.maintank:Show()
+                ns.maintank:SetAttribute("initial-width", C.Units.MainTank.Width)
+                ns.maintank:SetAttribute("initial-height", C.Units.MainTank.Height)
                 ns.maintank:ClearAllPoints()
                 ns.maintank:SetPoint(unpack(C.Units.MainTank.Position))
             else
@@ -579,6 +590,8 @@ function ns.UpdateFrames()
         if ns.maintanktarget then
             if C.Units.MainTankTarget.Enable then
                 ns.maintanktarget:Show()
+                ns.maintanktarget:SetAttribute("initial-width", C.Units.MainTankTarget.Width)
+                ns.maintanktarget:SetAttribute("initial-height", C.Units.MainTankTarget.Height)
                 ns.maintanktarget:ClearAllPoints()
                 ns.maintanktarget:SetPoint(unpack(C.Units.MainTankTarget.Position))
             else
@@ -1136,7 +1149,9 @@ oUF:Factory(function(self)
     -- Spawn Party frame
     ns.party = self:SpawnHeader("oUF_MyLayoutParty", nil, "custom [group:party, nogroup:raid] show; hide",
         "showParty", true,
-        "yOffset", -60 -- Arrange vertically
+        "yOffset", -60, -- Arrange vertically
+        "initial-width", C.Units.Party.Width,
+        "initial-height", C.Units.Party.Height
     )
     ns.RegisterWithEditMode("Party", ns.party, "Party Frames", "Party Frames")
 
@@ -1144,6 +1159,8 @@ oUF:Factory(function(self)
     ns.partytarget = self:SpawnHeader("oUF_MyLayoutPartyTarget", nil, "custom [group:party, nogroup:raid] show; hide",
         "showParty", true,
         "yOffset", -60, -- Same spacing as Party frame
+        "initial-width", C.Units.PartyTarget.Width,
+        "initial-height", C.Units.PartyTarget.Height,
         "oUF-initialConfigFunction", [[
             self:SetAttribute('unitsuffix', 'target')
         ]]
@@ -1166,7 +1183,9 @@ oUF:Factory(function(self)
             "groupFilter", tostring(i),
             "groupBy", "GROUP",
             "groupingOrder", tostring(i),
-            "sortMethod", "INDEX"
+            "sortMethod", "INDEX",
+            "initial-width", C.Units.Raid.Width,
+            "initial-height", C.Units.Raid.Height
         )
     end
 
@@ -1181,7 +1200,9 @@ oUF:Factory(function(self)
     ns.maintank = self:SpawnHeader("oUF_MyLayoutMainTank", nil, "custom [group:raid] show; hide",
         "showRaid", true,
         "groupFilter", "MAINTANK",
-        "yOffset", -10
+        "yOffset", -10,
+        "initial-width", C.Units.MainTank.Width,
+        "initial-height", C.Units.MainTank.Height
     )
     ns.RegisterWithEditMode("MainTank", ns.maintank, "Main Tank Frames", "Raid Frames")
 
@@ -1190,6 +1211,8 @@ oUF:Factory(function(self)
         "showRaid", true,
         "groupFilter", "MAINTANK",
         "yOffset", -10,
+        "initial-width", C.Units.MainTankTarget.Width,
+        "initial-height", C.Units.MainTankTarget.Height,
         "oUF-initialConfigFunction", [[
             self:SetAttribute('unitsuffix', 'target')
         ]]
