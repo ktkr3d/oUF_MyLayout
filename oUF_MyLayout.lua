@@ -131,9 +131,9 @@ end
 -- ------------------------------------------------------------------------
 -- Filter Functions
 -- ------------------------------------------------------------------------
-local function CustomFilter(element, unit, button, name, icon, count, debuffType, duration, expirationTime, source, ...)
+local function CustomFilter(element, unit, data)
     if element.onlyShowPlayer then
-        return source == "player" or source == "vehicle" or source == "pet"
+        return data.sourceUnit == "player" or data.sourceUnit == "vehicle" or data.sourceUnit == "pet"
     end
     return true
 end
@@ -364,11 +364,15 @@ local function UpdateUnitFrame(self, isInit)
             self.Buffs:ClearAllPoints()
             self.Buffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", bConfig.X or 0, bConfig.Y or 5)
             self.Buffs.onlyShowPlayer = bConfig.PlayerOnly
-            if self.Buffs.ForceUpdate then
-                self.Buffs:ForceUpdate()
+            if not isInit then
+                if not self:IsElementEnabled("Buffs") then self:EnableElement("Buffs") end
+                if self.Buffs.ForceUpdate then self.Buffs:ForceUpdate() end
             end
         else
             self.Buffs:Hide()
+            if not isInit and self:IsElementEnabled("Buffs") then
+                self:DisableElement("Buffs")
+            end
         end
     end
 
@@ -383,11 +387,15 @@ local function UpdateUnitFrame(self, isInit)
             self.Debuffs:ClearAllPoints()
             self.Debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", dConfig.X or 0, dConfig.Y or 35)
             self.Debuffs.onlyShowPlayer = dConfig.PlayerOnly
-            if self.Debuffs.ForceUpdate then
-                self.Debuffs:ForceUpdate()
+            if not isInit then
+                if not self:IsElementEnabled("Debuffs") then self:EnableElement("Debuffs") end
+                if self.Debuffs.ForceUpdate then self.Debuffs:ForceUpdate() end
             end
         else
             self.Debuffs:Hide()
+            if not isInit and self:IsElementEnabled("Debuffs") then
+                self:DisableElement("Debuffs")
+            end
         end
     end
 
