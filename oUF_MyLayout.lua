@@ -532,6 +532,8 @@ function ns.UpdateFrames()
 
                         header:SetAttribute("initial-width", C.Units.Raid.Width)
                         header:SetAttribute("initial-height", C.Units.Raid.Height)
+                        header:SetAttribute("xOffset", 0)
+                        header:SetAttribute("yOffset", -spacing)
 
                         if C.Units.Raid.ShowSolo then
                             visibility = visibility .. "[nogroup] show; "
@@ -1185,7 +1187,7 @@ oUF:Factory(function(self)
     for i = 1, 8 do
         ns.raidHeaders[i] = self:SpawnHeader("oUF_MyLayoutRaid" .. i, nil, "custom [group:raid] show; hide",
             "showRaid", true,
-            "xOffset", 5,
+            "xOffset", 0,
             "yOffset", -5,
             "point", "TOP",
             "groupFilter", tostring(i),
