@@ -567,10 +567,10 @@ ns.Config = {
             },
             Icons = {
                 RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 10 },
-                GroupRole = { Enable = true, Size = 20, Point = "TOPRIGHT", X = 10, Y = 10 },
+                GroupRole = { Enable = true, Size = 20, Point = "TOPRIGHT", X = 8, Y = 10 },
                 ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
-                Leader = { Enable = true, Size = 20, Point = "TOPLEFT", X = -10, Y = 10 },
-                Assistant = { Enable = true, Size = 20, Point = "TOPLEFT", X = -10, Y = 10 },
+                Leader = { Enable = true, Size = 20, Point = "TOPLEFT", X = -8, Y = 10 },
+                Assistant = { Enable = true, Size = 20, Point = "TOPLEFT", X = -8, Y = 10 },
             },
             Buffs = {
                 Enable = false,
@@ -617,10 +617,10 @@ ns.Config = {
             },
             Icons = {
                 RaidTarget = { Enable = true, Size = 20, Point = "TOP", X = 0, Y = 10 },
-                GroupRole = { Enable = true, Size = 20, Point = "TOPRIGHT", X = 10, Y = 10 },
+                GroupRole = { Enable = true, Size = 20, Point = "TOPRIGHT", X = 8, Y = 10 },
                 ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
-                Leader = { Enable = true, Size = 20, Point = "TOPLEFT", X = -10, Y = 10 },
-                Assistant = { Enable = true, Size = 20, Point = "TOPLEFT", X = -10, Y = 10 },
+                Leader = { Enable = true, Size = 20, Point = "TOPLEFT", X = -8, Y = 10 },
+                Assistant = { Enable = true, Size = 20, Point = "TOPLEFT", X = -8, Y = 10 },
             },
             Buffs = {
                 Enable = false,
