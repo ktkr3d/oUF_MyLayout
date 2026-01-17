@@ -1122,6 +1122,13 @@ local function Shared(self, unit)
     Debuffs.CustomFilter = CustomFilter
     self.Debuffs = Debuffs
 
+    -- 19. Range
+    local Range = {
+        insideAlpha = 1,
+        outsideAlpha = 0.4,
+    }
+    self.Range = Range
+
     -- Apply style (Initialization)
     UpdateUnitFrame(self, true)
 end
