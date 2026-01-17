@@ -630,9 +630,10 @@ local wasInRaid = IsInRaid()
 local RosterMonitor = CreateFrame("Frame")
 RosterMonitor:RegisterEvent("GROUP_ROSTER_UPDATE")
 RosterMonitor:RegisterEvent("PLAYER_ENTERING_WORLD")
-RosterMonitor:SetScript("OnEvent", function(self)
+RosterMonitor:RegisterEvent("PLAYER_REGEN_ENABLED")
+RosterMonitor:SetScript("OnEvent", function(self, event)
     local isInRaid = IsInRaid()
-    if isInRaid ~= wasInRaid then
+    if event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_REGEN_ENABLED" or isInRaid ~= wasInRaid then
         wasInRaid = isInRaid
         ns.UpdateFrames()
     end
