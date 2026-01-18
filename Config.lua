@@ -153,7 +153,7 @@ ns.Config = {
                 GroupRole = { Enable = true, Size = 32, Point = "TOPRIGHT", X = 15, Y = 15 },
                 ReadyCheck = { Enable = true, Size = 24, Point = "CENTER", X = 0, Y = 0 },
                 Leader = { Enable = true, Size = 32, Point = "TOPLEFT", X = -15, Y = 15 },
-                Assistant = { Enable = true, Size = 16, Point = "TOPLEFT", X = 2, Y = -2 },
+                Assistant = { Enable = true, Size = 32, Point = "TOPLEFT", X = -15, Y = 15 },
             },
             Buffs = {
                 Enable = false,
