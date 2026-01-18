@@ -3,10 +3,11 @@
 ## Author: ktkr3d
 ## Version: 0.1
 ## X-oUF: oUF_MyLayout
-## RequiredDeps: Ace3, LibSharedMedia-3.0, oUF
+## RequiredDeps: Ace3, LibSharedMedia-3.0
 ## Notes: oUF_MyLayout is a unit frame addon.
 ## SavedVariables: oUF_MyLayoutDB
 
+libs\oUF\oUF.xml
 Config.lua
 Options.lua
 oUF_MyLayout.lua
