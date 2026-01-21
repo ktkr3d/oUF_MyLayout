@@ -1,4 +1,4 @@
-## Interface: 110207
+## Interface: 120000,120001
 ## Title: oUF MyLayout
 ## Author: ktkr3d
 ## Version: 0.1
@@ -6,8 +6,10 @@
 ## RequiredDeps: Ace3, LibSharedMedia-3.0
 ## Notes: oUF_MyLayout is a unit frame addon.
 ## SavedVariables: oUF_MyLayoutDB
+## Category: Unit Frames
+## IconTexture: Interface\Icons\Achievement_Reputation_Kirintor
 
-libs\oUF12\oUF.xml
+libs\oUF13\oUF.xml
 Config.lua
 Options.lua
 oUF_MyLayout.lua

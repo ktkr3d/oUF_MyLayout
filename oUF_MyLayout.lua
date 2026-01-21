@@ -808,6 +808,9 @@ local function Shared(self, unit)
     Health.bg = HealthBg
 
     Health.PostUpdate = function(health, unit, min, max)
+        min = min or 0
+        max = max or 0
+
         local C = ns.Config
         if health.bg then health.bg:SetColorTexture(unpack(C.Colors.HealthBg)) end
 
@@ -837,7 +840,8 @@ local function Shared(self, unit)
         elseif parent.unit == "focus" then uConfig = C.Units.Focus
         end
 
-        local isFull = (min == max)
+        -- local isFull = (min == max)
+        local isFull = (max == max)
         local shouldHideHealth = uConfig.HideHealthTextAtFull and (isFull or min == 0)
 
         local tag = uConfig.HealthTag or "[perhp]%"
@@ -888,7 +892,8 @@ local function Shared(self, unit)
             local _, ptoken = UnitPowerType(unit)
             local color = oUF.colors.power[ptoken]
             if color then
-                power:SetStatusBarColor(color[1], color[2], color[3])
+                local r, g, b = color.r or color[1], color.g or color[2], color.b or color[3]
+                power:SetStatusBarColor(r, g, b)
             end
         end
     end
@@ -1166,16 +1171,16 @@ oUF:Factory(function(self)
     ns.RegisterWithEditMode("Focus", ns.focus, "Focus", "Unit Frames")
 
     -- Spawn Party frame
-    ns.party = self:SpawnHeader("oUF_MyLayoutParty", nil, "custom [group:party, nogroup:raid] show; hide",
+    ns.party = self:SpawnHeader("oUF_MyLayoutParty", nil,
         "showParty", true,
-        "yOffset", -60, -- Arrange vertically
+        "yOffset", -60,
         "initial-width", C.Units.Party.Width,
         "initial-height", C.Units.Party.Height
     )
     ns.RegisterWithEditMode("Party", ns.party, "Party Frames", "Party Frames")
 
     -- Spawn Party Target frame
-    ns.partytarget = self:SpawnHeader("oUF_MyLayoutPartyTarget", nil, "custom [group:party, nogroup:raid] show; hide",
+    ns.partytarget = self:SpawnHeader("oUF_MyLayoutPartyTarget", nil,
         "showParty", true,
         "yOffset", -60, -- Same spacing as Party frame
         "initial-width", C.Units.PartyTarget.Width,
@@ -1194,7 +1199,7 @@ oUF:Factory(function(self)
 
     ns.raidHeaders = {}
     for i = 1, 8 do
-        ns.raidHeaders[i] = self:SpawnHeader("oUF_MyLayoutRaid" .. i, nil, "custom [group:raid] show; hide",
+        ns.raidHeaders[i] = self:SpawnHeader("oUF_MyLayoutRaid" .. i, nil,
             "showRaid", true,
             "xOffset", 0,
             "yOffset", -5,
@@ -1216,7 +1221,7 @@ oUF:Factory(function(self)
     ns.RegisterWithEditMode("Boss", ns.boss[1], "Boss Frames", "Boss Frames")
 
     -- Spawn Main Tank frame
-    ns.maintank = self:SpawnHeader("oUF_MyLayoutMainTank", nil, "custom [group:raid] show; hide",
+    ns.maintank = self:SpawnHeader("oUF_MyLayoutMainTank", nil,
         "showRaid", true,
         "groupFilter", "MAINTANK",
         "yOffset", -10,
@@ -1226,7 +1231,7 @@ oUF:Factory(function(self)
     ns.RegisterWithEditMode("MainTank", ns.maintank, "Main Tank Frames", "Raid Frames")
 
     -- Spawn Main Tank Target frame
-    ns.maintanktarget = self:SpawnHeader("oUF_MyLayoutMainTankTarget", nil, "custom [group:raid] show; hide",
+    ns.maintanktarget = self:SpawnHeader("oUF_MyLayoutMainTankTarget", nil,
         "showRaid", true,
         "groupFilter", "MAINTANK",
         "yOffset", -10,

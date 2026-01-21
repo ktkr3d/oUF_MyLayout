@@ -1,3 +1,176 @@
+**Changes in 13.0.0:**
+
+- _Adrian L Lange (114):_
+    1. castbar: Expose spell name as an attribute
+    2. castbar: Only evaluate when needed
+    3. castbar: Pass the intended data
+    4. castbar: Document Time overrides
+    5. castbar: Don't update without a castID
+    6. core: Note to self
+    7. power: Respect display power type
+    8. tags: Include ColorMixin in ENV
+    9. castbar: Update to renamed method on Blizzard's pet castbar
+    10. classpower: Words
+    11. stagger: Disable itself when on an inappropriate class
+    12. runes: Disable itself when on an inappropriate class
+    13. classpower: More irk
+    14. classpower: Irk
+    15. alternativepower: Prune irrelevant color options
+    16. additionalpower: Prune irrelevant color options
+    17. power: Correctly update colorReaction and add toggle method
+    18. health: Correctly update colorReaction and add toggle method
+    19. tags: Revert secret check in Hex
+    20. core: Set all points on nameplate root frame by default
+    21. auras: Rename some annoying-to-type options
+    22. castbar: Rainrider is nitpicking
+    23. power: Pass unit to GetDisplayPower
+    24. castbar: Durations can be nil
+    25. health: Use fancy health loss atlas by default
+    26. tags: Don't create a table just to convert rgb to hex
+    27. tags: Avoid recreating tables
+    28. tags: Follow styleguide
+    29. tags: Use existing methods where possible
+    30. tags: Use existing colors in threatcolor tag
+    31. tags: Fix perpp tag
+    32. castbar: Add note on empower stage callback
+    33. castbar: Document smoothing option
+    34. auras: Follow style guide
+    35. healthprediction: Correct copy paste typos
+    36. private: Rearrange file
+    37. private: Use new enum
+    38. colors: Update docs and remove old note
+    39. colors: Update colors from wiki
+    40. enums: Add enum for selection type
+    41. range: Adjust docs
+    42. health: Be consistent with how we evaluate rgb
+    43. units: Evaluate max health curve while arena prepping
+    44. colors: Don't offset the health curve
+    45. colors: Remove unused function
+    46. colors: That's not how a table works lol
+    47. colors: Use our API to create the enrage color
+    48. units: Disable smooth colors for arena prep
+    49. health: Use curves for smooth gradient coloring
+    50. colors: Remove old gradient API
+    51. colors: Add default curve for health
+    52. colors: Add support for curves
+    53. alternativepower: Remove smooth coloring
+    54. additionalpower: Remove smooth coloring
+    55. power: Remove smooth coloring
+    56. Adjust smoothing docs
+    57. tags: Fix UnitHealth/PowerPercent usage
+    58. castbar: Add note for later
+    59. castbar: Separate callback for interrupts
+    60. castbar: Cleanup and remove delay for non-player
+    61. castbar: Disable stage callback
+    62. castbar: Update docs for castID attribute
+    63. castbar: Use new API to handle empowered stages
+    64. castbar: Ensure safezone is only calculated for player
+    65. castbar: Use new event payload arg to match casts
+    66. castbar: Use new duration API to update bar and time
+    67. castbar: Don't mangle the event variable
+    68. core: Fix missing driver return
+    69. core: Fix typos
+    70. core: Move some args from SpawnHeader to methods
+    71. core: Document the nameplates' methods
+    72. core: Fix syntax errors
+    73. core: Rewrite SpawnNamePlates
+    74. core: Add hack to make nameplates clickable
+    75. auras: Fix missing rename
+    76. Rename "debuff" to "dispel" everywhere
+    77. core: Update how we disable blizzard nameplates
+    78. healthprediction: Fix docs indentation
+    79. healthprediction: Clean up PostUpdate callback
+    80. healthprediction: Rewrite for Midnight
+    81. castbar: Show/hide Shield widget using alpha
+    82. colors: Add a custom color for enrage
+    83. auras: Support alpha for debuff colors
+    84. auras: Color curve cannot be nil
+    85. auras: Add missing docs for Overlay control flags
+    86. auras: Use curve and new API to color Overlay
+    87. auras: Expose `isHarmfulAura` on the aura data
+    88. colors: Add new debuff colors
+    89. enums: Add our own enum for DebuffType
+    90. auras: Use new duration API for cooldowns
+    91. auras: Fix application text using new API
+    92. range: Use new API to deal with secrets
+    93. tags: Use C_StringUtil to deal with secrets
+    94. stagger: Add support for smoothing
+    95. power: Add support for smoothing
+    96. health: Add support for smoothing
+    97. alternativepower: Add support for smoothing
+    98. additionalpower: Add support for smoothing
+    99. auras: Half-way fix cound using new API
+    100. auras: Fix stealable using new API
+    101. auras: Fix cooldown spiral using new API
+    102. health: Don't try to clamp secret values
+    103. auras: Use remaining duration
+    104. auras: Can't check specifics any more
+    105. auras: Hide non-working elements to shut linter up
+    106. auras: Fix cooldown widget with new(?) APIs
+    107. tags: Remove tags that will no longer be possible
+    108. tags: Rework some tags to work with new APIs
+    109. tags: Some work on getting secrets to work
+    110. auras: Comment out things that are still broken
+    111. auras: Remove attributes that are now secrets
+    112. auras: Remove secrets and fix isPlayerAura
+    113. auras: Use new API for tooltip
+    114. Remove combat events entirely
+- _Val Voronov (46):_
+    1. Use UnitClassBase for 'player' units
+    2. health: Fix docs
+    3. tags: Add secret handling to Hex
+    4. units: Use color object as is
+    5. threatindicator: Pass color instead of r, g, b
+    6. stagger: Pass color instead of r, g, b
+    7. runes: Pass color instead of r, g, b
+    8. power: Pass color in addition to r, g, b
+    9. health: Pass color instead of r, g, b
+    10. classpower: Pass color instead of r, g, b
+    11. alternativepower: Pass color instead of r, g, b
+    12. additionalpower: Pass color instead of r, g, b
+    13. power: Remove :GetAlternativeColor()
+    14. Remove .multiplier and .bg
+    15. core: Fix file order
+    16. core: Fix docs
+    17. power: Fix docs
+    18. colors: Update selection colors
+    19. power: Update docs
+    20. health: Update docs
+    21. alternativepower: Update docs
+    22. additionalpower: Update docs
+    23. power: Use GetAtlas API
+    24. core: Use nierror instead of warn
+    25. additionalpower: Make sure curve exists
+    26. alternativepower: Make sure curve exists
+    27. power: Make sure curve exists
+    28. Woop woop that's the sound of lint police
+    29. colors: Tweak warning
+    30. core: Rename Private.error to Private.warn
+    31. health: Fix docs
+    32. alternativepower: Add .colorPowerSmooth option
+    33. additionalpower: Add .colorPowerSmooth option
+    34. power: Add .colorPowerSmooth option
+    35. colors: Add default curve to all colors
+    36. colors: Handle .atlasElementName
+    37. auras: Reuse color curves
+    38. castbar: Use proper API
+    39. castbar: Reset attributes after calling callbacks
+    40. range: Use custom secret-less check
+    41. colors: Readd support for bytes
+    42. Use GetRGB() instead
+    43. SetStatusBarColor doesn't accept secrets
+    44. Disable background coloring
+    45. colors: Remove SetRGBA override
+    46. blizzard: Do not reparent frames while in combat ([#729](https://github.com/oUF-wow/oUF/issues/729))
+- _dependabot[bot] (3):_
+    1. build(deps): bump peter-evans/create-pull-request from 7 to 8 ([#728](https://github.com/oUF-wow/oUF/issues/728))
+    2. build(deps): bump actions/checkout from 5 to 6 ([#726](https://github.com/oUF-wow/oUF/issues/726))
+    3. build(deps): bump actions/checkout from 4 to 5 ([#723](https://github.com/oUF-wow/oUF/issues/723))
+- _github-actions[bot] (2):_
+    1. Update Interface version ([#727](https://github.com/oUF-wow/oUF/issues/727))
+    2. Update license ([#730](https://github.com/oUF-wow/oUF/issues/730))
+- 29 files changed, 1206 insertions(+), 1394 deletions(-)
+
 **Changes in 12.1.0:**
 
 - _Adrian L Lange (23):_
