@@ -7,7 +7,7 @@
 ## Notes: oUF_MyLayout is a unit frame addon.
 ## SavedVariables: oUF_MyLayoutDB
 
-libs\oUF\oUF.xml
+libs\oUF12\oUF.xml
 Config.lua
 Options.lua
 oUF_MyLayout.lua
