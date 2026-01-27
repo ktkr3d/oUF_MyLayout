@@ -17,6 +17,17 @@ local function deepcopy(orig)
     return copy
 end
 
+local percentCurve = C_CurveUtil.CreateCurve()
+percentCurve:SetType(Enum.LuaCurveType.Linear)
+percentCurve:AddPoint(0, 0)
+percentCurve:AddPoint(1, 100)
+
+local alphaCurve = C_CurveUtil.CreateCurve()
+alphaCurve:SetType(Enum.LuaCurveType.Linear)
+alphaCurve:AddPoint(0.0, 255)
+alphaCurve:AddPoint(0.99, 255)
+alphaCurve:AddPoint(1.0, 0)
+
 -- Custom Tag: AFK (displayed in red)
 oUF.Tags.Methods["my:afk"] = function(unit)
     if UnitIsAFK(unit) then
@@ -27,15 +38,24 @@ oUF.Tags.Events["my:afk"] = "PLAYER_FLAGS_CHANGED UNIT_FLAGS"
 
 -- Custom Tag: HP Percent (1 decimal place)
 oUF.Tags.Methods["my:perhp"] = function(unit)
-    local cur, max = UnitHealth(unit), UnitHealthMax(unit)
-    if max == 0 then return 0 end
-    return string.format("%.1f", cur / max * 100)
+    local per = UnitHealthPercent(unit, false, percentCurve)
+    return string.format("%.1f", per)
 end
 oUF.Tags.Events["my:perhp"] = "UNIT_HEALTH UNIT_MAXHEALTH"
 
+-- Custom Tag: HP Percent (Gradient Color)
+oUF.Tags.Methods["my:perhp_grad"] = function(unit)
+    local per = UnitHealthPercent(unit, false, percentCurve)
+    local alpha = UnitHealthPercent(unit, false, alphaCurve)
+    return string.format("|c%02xffffff%.1f%%|r", alpha, per)
+end
+oUF.Tags.Events["my:perhp_grad"] = "UNIT_HEALTH UNIT_MAXHEALTH"
+
 -- Custom Tag: Short Value (Human Readable)
 oUF.Tags.Methods["my:shortval"] = function(unit)
-    return AbbreviateNumbers(UnitHealth(unit))
+    local val = UnitHealth(unit)
+    if type(val) ~= "number" then return val end
+    return AbbreviateNumbers(val)
 end
 oUF.Tags.Events["my:shortval"] = "UNIT_HEALTH UNIT_MAXHEALTH"
 
@@ -43,6 +63,8 @@ oUF.Tags.Events["my:shortval"] = "UNIT_HEALTH UNIT_MAXHEALTH"
 oUF.Tags.Methods["my:shortname"] = function(unit)
     local name = UnitName(unit)
     if not name then return "" end
+    if issecretvalue and issecretvalue(name) then return name end
+    if type(name) ~= "string" then return name end
     
     -- Get settings according to unit
     local C = ns.Config
@@ -472,24 +494,26 @@ function ns.UpdateFrames()
         -- Party
         if ns.party then
             if C.Units.Party.Enable then
-                ns.party:Show()
                 ns.party:SetAttribute("initial-width", C.Units.Party.Width)
                 ns.party:SetAttribute("initial-height", C.Units.Party.Height)
                 ns.party:ClearAllPoints()
                 ns.party:SetPoint(unpack(C.Units.Party.Position))
+                RegisterStateDriver(ns.party, "visibility", "[group:party,nogroup:raid] show; hide")
             else
+                UnregisterStateDriver(ns.party, "visibility")
                 ns.party:Hide()
             end
         end
         -- PartyTarget
         if ns.partytarget then
             if C.Units.PartyTarget.Enable then
-                ns.partytarget:Show()
                 ns.partytarget:SetAttribute("initial-width", C.Units.PartyTarget.Width)
                 ns.partytarget:SetAttribute("initial-height", C.Units.PartyTarget.Height)
                 ns.partytarget:ClearAllPoints()
                 ns.partytarget:SetPoint(unpack(C.Units.PartyTarget.Position))
+                RegisterStateDriver(ns.partytarget, "visibility", "[group:party,nogroup:raid] show; hide")
             else
+                UnregisterStateDriver(ns.partytarget, "visibility")
                 ns.partytarget:Hide()
             end
         end
@@ -795,15 +819,7 @@ local function Shared(self, unit)
     Health.colorReaction = false
     Health.bg = HealthBg
 
-    Health.PostUpdate = function(health, unit, min, max)
-        min = min or 0
-        max = max or 0
-
-        local C = ns.Config
-        if health.bg then health.bg:SetColorTexture(unpack(C.Colors.HealthBg)) end
-
-        -- Apply foreground color (Health Bar color)
-        -- Do not overwrite if Tapping (no rights) or Disconnected (offline) as oUF sets the color
+    Health.PostUpdate = function(health, unit, cur, max)
         local isTapped = health.colorTapping and not UnitPlayerControlled(unit) and UnitIsTapDenied(unit)
         local isDisconnected = health.colorDisconnected and not UnitIsConnected(unit)
         if not isTapped and not isDisconnected then
@@ -828,9 +844,7 @@ local function Shared(self, unit)
         elseif parent.unit == "focus" then uConfig = C.Units.Focus
         end
 
-        -- local isFull = (min == max)
-        local isFull = (max == max)
-        local shouldHideHealth = uConfig.HideHealthTextAtFull and (isFull or min == 0)
+        local shouldHideHealth = UnitIsDead(unit) or UnitIsGhost(unit) or UnitIsAFK(unit)
 
         local tag = uConfig.HealthTag or "[perhp]%"
         if shouldHideHealth then
@@ -1024,7 +1038,7 @@ local function Shared(self, unit)
                 local spacing = 2
                 local width = self:GetWidth()
                 local maxPoints = max or 5
-                if maxPoints == 0 then maxPoints = 5 end
+                if type(maxPoints) ~= "number" or issecretvalue(maxPoints) then maxPoints = 5 end
                 
                 local barWidth = (width - (spacing * (maxPoints - 1))) / maxPoints
                 for i = 1, #element do

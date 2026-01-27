@@ -42,6 +42,7 @@ local tagValues = {
     [""] = "None",
     ["[perhp]%"] = "Percent (100%)",
     ["[my:perhp]%"] = "Percent (100.0%)",
+    ["[my:perhp_grad]"] = "Percent (Gradient)",
     ["[curhp]"] = "Current (1234)",
     ["[curhp] / [maxhp]"] = "Current / Max (1234 / 2000)",
     ["[missinghp]"] = "Deficit (-500)",
