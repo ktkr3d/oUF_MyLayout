@@ -334,8 +334,13 @@ local function UpdateUnitFrame(self, isInit)
         end
 
         local isPortraitEnabled = pConfig.Enable
-        if ns.Config.General and ns.Config.General.DisablePortraitsInRaid and IsInRaid() then
-            isPortraitEnabled = false
+        local _, instanceType = IsInInstance()
+        if ns.Config.General then
+            if ns.Config.General.DisablePortraitsInRaid and IsInRaid() then
+                isPortraitEnabled = false
+            elseif ns.Config.General.DisablePortraitsInDungeon and instanceType == "party" then
+                isPortraitEnabled = false
+            end
         end
 
         if isPortraitEnabled then

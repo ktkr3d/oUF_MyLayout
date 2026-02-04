@@ -5,6 +5,7 @@ ns.Config = {
     -- Global settings
     General = {
         DisablePortraitsInRaid = true,
+        DisablePortraitsInDungeon = false,
     },
 
     -- Media settings (textures, fonts)
