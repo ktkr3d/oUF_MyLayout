@@ -1081,9 +1081,9 @@ local function Shared(self, unit)
     -- --------------------------------------------------------------------
     if unit == "player" and select(2, UnitClass("player")) == "DRUID" then
         local AdditionalPower = CreateFrame("StatusBar", nil, self)
-        AdditionalPower:SetHeight(10)
-        AdditionalPower:SetPoint("TOPLEFT", self.Power, "BOTTOMLEFT", 0, -2)
-        AdditionalPower:SetPoint("TOPRIGHT", self.Power, "BOTTOMRIGHT", 0, -2)
+        AdditionalPower:SetHeight(5)
+        AdditionalPower:SetPoint("TOPLEFT", self.Power, "BOTTOMLEFT", 0, 5)
+        AdditionalPower:SetPoint("TOPRIGHT", self.Power, "BOTTOMRIGHT", 0, 5)
         AdditionalPower.colorPower = true
 
         local bg = AdditionalPower:CreateTexture(nil, "BACKGROUND")
