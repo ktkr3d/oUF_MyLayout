@@ -657,46 +657,6 @@ RosterMonitor:SetScript("OnEvent", function(self, event)
 end)
 
 -- ------------------------------------------------------------------------
--- Edit Mode Integration
--- ------------------------------------------------------------------------
-function ns.RegisterWithEditMode(unitKey, frame, displayName, category)
-    if not EditModeManager then return end
-
-    local layoutData = {
-        name = displayName,
-        movable = true,
-        category = category,
-        OnPositionChanged = function(self, x, y)
-            -- The frame is moved, save its new position relative to the center.
-            -- This will overwrite the original anchor point, which is fine.
-            ns.Config.Units[unitKey].Position = {"CENTER", x, y}
-        end,
-        OnReset = function(self)
-            -- Reset to the default position from Config.lua
-            local defaultConfig = ns.Defaults.Units[unitKey]
-            if defaultConfig and defaultConfig.Position then
-                -- Use deepcopy to avoid modifying the defaults table
-                ns.Config.Units[unitKey].Position = deepcopy(defaultConfig.Position)
-                ns.UpdateFrames() -- This will re-apply positions for all frames
-            end
-        end,
-        options = {
-            {
-                type = "toggle",
-                name = "Enable",
-                get = function() return ns.Config.Units[unitKey].Enable end,
-                set = function(info, val)
-                    ns.Config.Units[unitKey].Enable = val
-                    ns.UpdateFrames()
-                end
-            }
-        }
-    }
-
-    EditModeManager:RegisterFrame(frame, layoutData)
-end
-
--- ------------------------------------------------------------------------
 -- Hide Blizzard Frames
 -- ------------------------------------------------------------------------
 local hiddenParent = CreateFrame("Frame", nil, UIParent)
@@ -1159,23 +1119,18 @@ oUF:Factory(function(self)
 
     -- Spawn and position Player frame
     ns.player = self:Spawn("player")
-    ns.RegisterWithEditMode("Player", ns.player, "Player", "Unit Frames")
 
     -- Spawn and position Target frame
     ns.target = self:Spawn("target")
-    ns.RegisterWithEditMode("Target", ns.target, "Target", "Unit Frames")
 
     -- Spawn Target's Target frame
     ns.targettarget = self:Spawn("targettarget")
-    ns.RegisterWithEditMode("TargetTarget", ns.targettarget, "Target's Target", "Unit Frames")
 
     -- Spawn and position Pet frame
     ns.pet = self:Spawn("pet")
-    ns.RegisterWithEditMode("Pet", ns.pet, "Pet", "Unit Frames")
 
     -- Spawn Focus frame
     ns.focus = self:Spawn("focus")
-    ns.RegisterWithEditMode("Focus", ns.focus, "Focus", "Unit Frames")
 
     -- Spawn Party frame
     ns.party = self:SpawnHeader("oUF_MyLayoutParty", nil,
@@ -1184,7 +1139,6 @@ oUF:Factory(function(self)
         "initial-width", C.Units.Party.Width,
         "initial-height", C.Units.Party.Height
     )
-    ns.RegisterWithEditMode("Party", ns.party, "Party Frames", "Party Frames")
 
     -- Spawn Party Target frame
     ns.partytarget = self:SpawnHeader("oUF_MyLayoutPartyTarget", nil,
@@ -1196,13 +1150,11 @@ oUF:Factory(function(self)
             self:SetAttribute('unitsuffix', 'target')
         ]]
     )
-    ns.RegisterWithEditMode("PartyTarget", ns.partytarget, "Party Target Frames", "Party Frames")
 
     -- Spawn Raid frame
     -- Create a holder frame for positioning and Edit Mode
     ns.raid = CreateFrame("Frame", "oUF_MyLayoutRaidHolder", UIParent)
     ns.raid:SetSize(100, 100) -- Size updated in UpdateFrames
-    ns.RegisterWithEditMode("Raid", ns.raid, "Raid Frames", "Raid Frames")
 
     ns.raidHeaders = {}
     for i = 1, 8 do
@@ -1225,7 +1177,6 @@ oUF:Factory(function(self)
     for i = 1, 5 do
         ns.boss[i] = self:Spawn("boss" .. i)
     end
-    ns.RegisterWithEditMode("Boss", ns.boss[1], "Boss Frames", "Boss Frames")
 
     -- Spawn Main Tank frame
     ns.maintank = self:SpawnHeader("oUF_MyLayoutMainTank", nil,
@@ -1235,7 +1186,6 @@ oUF:Factory(function(self)
         "initial-width", C.Units.MainTank.Width,
         "initial-height", C.Units.MainTank.Height
     )
-    ns.RegisterWithEditMode("MainTank", ns.maintank, "Main Tank Frames", "Raid Frames")
 
     -- Spawn Main Tank Target frame
     ns.maintanktarget = self:SpawnHeader("oUF_MyLayoutMainTankTarget", nil,
@@ -1248,7 +1198,6 @@ oUF:Factory(function(self)
             self:SetAttribute('unitsuffix', 'target')
         ]]
     )
-    ns.RegisterWithEditMode("MainTankTarget", ns.maintanktarget, "Main Tank Target Frames", "Raid Frames")
 
     -- Update all frames once at initial load to finalize positions and visibility
     ns.UpdateFrames()
