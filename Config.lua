@@ -312,7 +312,7 @@ ns.Config = {
         },
         Party = {
             Enable = true,
-            Width = 184,
+            Width = 204,
             Height = 46,
             HealthHeight = 30,
             PowerHeight = 10,
@@ -416,7 +416,7 @@ ns.Config = {
                 Y = 5,
                 PlayerOnly = false,
             },
-            Position = {"LEFT", 400, 150},
+            Position = {"LEFT", 430, 150},
         },
         Raid = {
             Enable = true,
@@ -534,7 +534,7 @@ ns.Config = {
         },
         MainTank = {
             Enable = true,
-            Width = 120,
+            Width = 160,
             Height = 38,
             HealthHeight = 24,
             PowerHeight = 8,
