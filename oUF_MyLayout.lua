@@ -30,7 +30,9 @@ alphaCurve:AddPoint(1.0, 0)
 
 -- Custom Tag: AFK (displayed in red)
 oUF.Tags.Methods["my:afk"] = function(unit)
-    if UnitIsAFK(unit) then
+    local isAFK = UnitIsAFK(unit)
+    if issecretvalue and issecretvalue(isAFK) then isAFK = false end
+    if isAFK then
         return "|cffff0000AFK|r"
     end
 end
@@ -809,7 +811,17 @@ local function Shared(self, unit)
         elseif parent.unit == "focus" then uConfig = C.Units.Focus
         end
 
-        local shouldHideHealth = UnitIsDead(unit) or UnitIsGhost(unit) or UnitIsAFK(unit)
+        local isDead = UnitIsDead(unit)
+        local isGhost = UnitIsGhost(unit)
+        local isAFK = UnitIsAFK(unit)
+
+        if issecretvalue then
+            if issecretvalue(isDead) then isDead = false end
+            if issecretvalue(isGhost) then isGhost = false end
+            if issecretvalue(isAFK) then isAFK = false end
+        end
+
+        local shouldHideHealth = isDead or isGhost or isAFK
 
         local tag = uConfig.HealthTag or "[perhp]%"
         if shouldHideHealth then
