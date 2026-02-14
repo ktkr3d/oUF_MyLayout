@@ -288,8 +288,15 @@ local function processData(element, unit, data, filter)
 	return data
 end
 
+local function isCompoundUnit(unit)
+	return unit:match('target') and unit ~= 'target'
+end
+
 local function UpdateAuras(self, event, unit, updateInfo)
 	if(self.unit ~= unit) then return end
+
+	-- We can't use C_UnitAuras on compound units.
+	if(isCompoundUnit(unit)) then return end
 
 	local isFullUpdate = not updateInfo or updateInfo.isFullUpdate
 
