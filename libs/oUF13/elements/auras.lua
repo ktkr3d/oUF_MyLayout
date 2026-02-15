@@ -209,6 +209,11 @@ local function updateAura(element, unit, data, position)
 	if(button.Overlay) then
 		if(element.showType or (data.isHarmfulAura and element.showDebuffType) or (not data.isHarmfulAura and element.showBuffType)) then
 			local color = C_UnitAuras.GetAuraDispelTypeColor(unit, data.auraInstanceID, element.dispelColorCurve)
+			if color == nil then
+				-- BUG: this shouldn't happen but color can be nil, so default to None color
+				color = element.dispelColorCurve:Evaluate(0)
+			end
+
 			button.Overlay:SetVertexColor(color:GetRGBA())
 			button.Overlay:Show()
 		else
@@ -268,7 +273,7 @@ local function processData(element, unit, data, filter)
 	if(not data) then return end
 
 	data.isPlayerAura = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, filter .. '|PLAYER')
-	data.isHarmfulAura = filter == 'HARMFUL' -- "isHarmful" is a secret, use a different name
+	data.isHarmfulAura = filter:find('HARMFUL') and true -- "isHarmful" is a secret, use a different name
 
 	--[[ Callback: Auras:PostProcessAuraData(unit, data, filter)
 	Called after the aura data has been processed.
@@ -288,15 +293,8 @@ local function processData(element, unit, data, filter)
 	return data
 end
 
-local function isCompoundUnit(unit)
-	return unit:match('target') and unit ~= 'target'
-end
-
 local function UpdateAuras(self, event, unit, updateInfo)
 	if(self.unit ~= unit) then return end
-
-	-- We can't use C_UnitAuras on compound units.
-	if(isCompoundUnit(unit)) then return end
 
 	local isFullUpdate = not updateInfo or updateInfo.isFullUpdate
 
