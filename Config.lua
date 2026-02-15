@@ -477,7 +477,7 @@ ns.Config = {
         },
         Boss = {
             Enable = true,
-            Width = 160,
+            Width = 165,
             Height = 40,
             HealthHeight = 26,
             PowerHeight = 8,
@@ -534,7 +534,7 @@ ns.Config = {
         },
         MainTank = {
             Enable = true,
-            Width = 160,
+            Width = 165,
             Height = 38,
             HealthHeight = 24,
             PowerHeight = 8,
@@ -591,7 +591,7 @@ ns.Config = {
         },
         MainTankTarget = {
             Enable = true,
-            Width = 120,
+            Width = 165,
             Height = 38,
             HealthHeight = 24,
             PowerHeight = 8,
@@ -630,7 +630,7 @@ ns.Config = {
                 Y = 5,
                 PlayerOnly = false,
             },
-            Position = {"TOPRIGHT", "UIParent", "BOTTOMRIGHT", -140, 320 },
+            Position = {"TOPRIGHT", "UIParent", "BOTTOMRIGHT", -180, 320 },
         },
         -- Default (other than above)
         Default = {
