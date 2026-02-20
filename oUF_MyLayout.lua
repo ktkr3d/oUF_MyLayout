@@ -372,7 +372,10 @@ local function UpdateUnitFrame(self, isInit)
 
     if self.Buffs then
         local bConfig = uConfig.Buffs or {}
-        if bConfig.Enable then
+        -- C_UnitAuras does not support compound units (e.g. targettarget, party1target)
+        local isAuraSupported = unit and not (unit:match("target") and unit ~= "target") and not (unit:match("pet") and unit ~= "pet")
+
+        if bConfig.Enable and isAuraSupported then
             self.Buffs:Show()
             self.Buffs.size = bConfig.Size or 20
             self.Buffs.spacing = 4
@@ -395,7 +398,10 @@ local function UpdateUnitFrame(self, isInit)
 
     if self.Debuffs then
         local dConfig = uConfig.Debuffs or {}
-        if dConfig.Enable then
+        -- C_UnitAuras does not support compound units (e.g. targettarget, party1target)
+        local isAuraSupported = unit and not (unit:match("target") and unit ~= "target") and not (unit:match("pet") and unit ~= "pet")
+
+        if dConfig.Enable and isAuraSupported then
             self.Debuffs:Show()
             self.Debuffs.size = dConfig.Size or 20
             self.Debuffs.spacing = 4
@@ -630,14 +636,16 @@ function ns.UpdateFrames()
         for _, obj in pairs(oUF.objects) do
             if obj.style == "MyLayout" then
                 UpdateUnitFrame(obj)
-                if obj.Health and obj.Health.ForceUpdate then
-                    obj.Health:ForceUpdate()
-                end
-                if obj.Power and obj.Power.ForceUpdate then
-                    obj.Power:ForceUpdate()
-                end
-                if obj.ClassPower and obj.ClassPower.ForceUpdate then
-                    obj.ClassPower:ForceUpdate()
+                if obj.unit and UnitExists(obj.unit) then
+                    if obj.Health and obj.Health.ForceUpdate then
+                        obj.Health:ForceUpdate()
+                    end
+                    if obj.Power and obj.Power.ForceUpdate then
+                        obj.Power:ForceUpdate()
+                    end
+                    if obj.ClassPower and obj.ClassPower.ForceUpdate then
+                        obj.ClassPower:ForceUpdate()
+                    end
                 end
             end
         end
@@ -1088,24 +1096,29 @@ local function Shared(self, unit)
     -- --------------------------------------------------------------------
     -- 17. Buffs
     -- --------------------------------------------------------------------
-    local Buffs = CreateFrame("Frame", nil, self)
-    Buffs.gap = true
-    Buffs.initialAnchor = "BOTTOMLEFT"
-    Buffs["growth-x"] = "RIGHT"
-    Buffs["growth-y"] = "UP"
-    Buffs.showStealableBuffs = true
-    Buffs.CustomFilter = CustomFilter
-    self.Buffs = Buffs
+    -- C_UnitAuras does not support compound units (e.g. targettarget, party1target)
+    local isAuraSupported = unit and not (unit:match("target") and unit ~= "target") and not (unit:match("pet") and unit ~= "pet")
 
-    -- 18. Debuffs
-    local Debuffs = CreateFrame("Frame", nil, self)
-    Debuffs.gap = true
-    Debuffs.initialAnchor = "BOTTOMLEFT"
-    Debuffs["growth-x"] = "RIGHT"
-    Debuffs["growth-y"] = "UP"
-    Debuffs.showDebuffType = true
-    Debuffs.CustomFilter = CustomFilter
-    self.Debuffs = Debuffs
+    if isAuraSupported then
+        local Buffs = CreateFrame("Frame", nil, self)
+        Buffs.gap = true
+        Buffs.initialAnchor = "BOTTOMLEFT"
+        Buffs["growth-x"] = "RIGHT"
+        Buffs["growth-y"] = "UP"
+        Buffs.showStealableBuffs = true
+        Buffs.CustomFilter = CustomFilter
+        self.Buffs = Buffs
+
+        -- 18. Debuffs
+        local Debuffs = CreateFrame("Frame", nil, self)
+        Debuffs.gap = true
+        Debuffs.initialAnchor = "BOTTOMLEFT"
+        Debuffs["growth-x"] = "RIGHT"
+        Debuffs["growth-y"] = "UP"
+        Debuffs.showDebuffType = true
+        Debuffs.CustomFilter = CustomFilter
+        self.Debuffs = Debuffs
+    end
 
     -- 19. Range
     local Range = {
