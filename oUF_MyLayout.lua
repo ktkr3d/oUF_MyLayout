@@ -762,6 +762,18 @@ local function Shared(self, unit)
     if not InCombatLockdown() then
         self:RegisterForClicks("AnyUp")
     end
+
+    -- Workaround for oUF library error: Prevent GROUP_ROSTER_UPDATE from firing when unit is nil
+    local oldOnEvent = self:GetScript("OnEvent")
+    if oldOnEvent then
+        self:SetScript("OnEvent", function(self, event, ...)
+            if event == "GROUP_ROSTER_UPDATE" and not self.unit then
+                return
+            end
+            return oldOnEvent(self, event, ...)
+        end)
+    end
+
     self:SetScript("OnEnter", UnitFrame_OnEnter)
     self:SetScript("OnLeave", UnitFrame_OnLeave)
 
