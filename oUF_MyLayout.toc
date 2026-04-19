@@ -3,6 +3,7 @@
 ## Author: ktkr3d
 ## Version: 0.1
 ## X-oUF: oUF_MyLayout
+## X-Source: https://github.com/ktkr3d/oUF_MyLayout
 ## RequiredDeps: Ace3, LibSharedMedia-3.0
 ## Notes: oUF_MyLayout is a unit frame addon.
 ## SavedVariables: oUF_MyLayoutDB
