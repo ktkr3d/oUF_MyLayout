@@ -1,7 +1,7 @@
 ## Interface: 120005
 ## Title: oUF MyLayout
 ## Author: ktkr3d
-## Version: 0.1
+## Version: 0.2
 ## X-oUF: oUF_MyLayout
 ## X-Source: https://github.com/ktkr3d/oUF_MyLayout
 ## RequiredDeps: Ace3, LibSharedMedia-3.0, oUF
