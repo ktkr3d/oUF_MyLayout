@@ -1,7 +1,7 @@
 ## Interface: 120005
-## Title: oUF MyLayout
+## Title: oUF_MyLayout
 ## Author: ktkr3d
-## Version: 0.2
+## Version: v0.2.0
 ## X-oUF: oUF_MyLayout
 ## X-Source: https://github.com/ktkr3d/oUF_MyLayout
 ## RequiredDeps: Ace3, LibSharedMedia-3.0, oUF
@@ -9,6 +9,7 @@
 ## SavedVariables: oUF_MyLayoutDB
 ## Category: Unit Frames
 ## IconTexture: Interface\Icons\Achievement_Reputation_Kirintor
+
 Config.lua
 Options.lua
 oUF_MyLayout.lua
