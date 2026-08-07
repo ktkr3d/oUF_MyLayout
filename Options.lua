@@ -571,6 +571,19 @@ ns.SetupOptions = function()
                                 get = function() return ns.Config.General.DisablePortraitsInDungeon end,
                                 set = function(_, val) ns.Config.General.DisablePortraitsInDungeon = val; ns.UpdateFrames() end,
                             },
+                            hideMinimapIcon = {
+                                type = "toggle",
+                                name = "Hide Minimap Icon",
+                                desc = "Hide or show the minimap button for oUF_MyLayout",
+                                order = 3,
+                                width = "full",
+                                get = function() return ns.Config.General.MinimapIcon and ns.Config.General.MinimapIcon.hide end,
+                                set = function(_, val)
+                                    if not ns.Config.General.MinimapIcon then ns.Config.General.MinimapIcon = {} end
+                                    ns.Config.General.MinimapIcon.hide = val
+                                    if ns.UpdateMinimapButton then ns.UpdateMinimapButton() end
+                                end,
+                            },
                         },
                     },
                     colors = {

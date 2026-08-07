@@ -6,6 +6,10 @@ ns.Config = {
     General = {
         DisablePortraitsInRaid = true,
         DisablePortraitsInDungeon = false,
+        MinimapIcon = {
+            hide = false,
+            minimapPos = 220,
+        },
     },
 
     -- Media settings (textures, fonts)
