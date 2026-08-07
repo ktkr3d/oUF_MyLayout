@@ -25,3 +25,20 @@ oUF_MyLayout is a unit frame addon.
 /mylayout test   - Toggle test mode to preview frames
 /mylayout reset  - Reset profile settings
 ```
+
+## Profile Sharing
+
+Settings can be exported as a compact string and shared with other players or characters.
+
+1. Open the configuration GUI with `/mylayout config`
+2. Navigate to **Profile Sharing → Export**
+3. Click **Generate Export String** to generate the export string
+4. Copy the string from the text box
+
+To import settings:
+
+1. Navigate to **Profile Sharing → Import**
+2. Paste the export string into the text box
+3. Click **Import Profile** and confirm
+
+> **Note**: Importing will overwrite the current profile's settings.

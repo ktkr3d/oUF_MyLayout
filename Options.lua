@@ -671,6 +671,95 @@ ns.SetupOptions = function()
             boss = CreateUnitGroup("Boss", "Boss Frame", 27, false, true, 4, 5),
             maintank = CreateUnitGroup("MainTank", "MainTank Frame", 28, false, true, 4, 5),
             maintanktarget = CreateUnitGroup("MainTankTarget", "MainTank Target Frame", 29, false, true, 4, 5),
+            profileSharing = {
+                type = "group",
+                name = "Profile Sharing",
+                order = 199,
+                childGroups = "tab",
+                args = {
+                    export = {
+                        type = "group",
+                        name = "Export",
+                        order = 1,
+                        args = {
+                            desc = {
+                                type = "description",
+                                name = "Export your current profile settings as a shareable string.\nCopy the generated string and share it with other characters or players.",
+                                order = 1,
+                            },
+                            generateButton = {
+                                type = "execute",
+                                name = "Generate Export String",
+                                desc = "Convert the current profile into a shareable export string",
+                                order = 2,
+                                width = "full",
+                                func = function()
+                                    local str = ns.ExportProfile and ns.ExportProfile()
+                                    if str then
+                                        ns._exportString = str
+                                        print("|cff00ff00oUF_MyLayout:|r Export string generated. Copy it from the box below.")
+                                    end
+                                end,
+                            },
+                            exportBox = {
+                                type = "input",
+                                name = "Export String (copy this)",
+                                order = 3,
+                                width = "full",
+                                multiline = 8,
+                                get = function()
+                                    return ns._exportString or ""
+                                end,
+                                set = function() end, -- read-only
+                            },
+                        },
+                    },
+                    import = {
+                        type = "group",
+                        name = "Import",
+                        order = 2,
+                        args = {
+                            desc = {
+                                type = "description",
+                                name = "Paste an export string below to import a profile.\n|cffff0000Warning: This will overwrite your current profile settings.|r",
+                                order = 1,
+                            },
+                            importBox = {
+                                type = "input",
+                                name = "Paste Import String Here",
+                                order = 2,
+                                width = "full",
+                                multiline = 8,
+                                get = function()
+                                    return ns._importString or ""
+                                end,
+                                set = function(_, val)
+                                    ns._importString = val
+                                end,
+                            },
+                            importButton = {
+                                type = "execute",
+                                name = "Import Profile",
+                                desc = "Load the profile from the pasted string (current settings will be overwritten)",
+                                order = 3,
+                                width = "full",
+                                confirm = true,
+                                confirmText = "Are you sure you want to overwrite the current profile with the imported settings?",
+                                func = function()
+                                    if ns.ImportProfile and ns._importString and ns._importString ~= "" then
+                                        local ok = ns.ImportProfile(ns._importString)
+                                        if ok then
+                                            ns._importString = ""
+                                        end
+                                    else
+                                        print("|cff00ff00oUF_MyLayout:|r Import string is empty or the import function is unavailable.")
+                                    end
+                                end,
+                            },
+                        },
+                    },
+                },
+            },
             profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(ns.db),
         },
     }

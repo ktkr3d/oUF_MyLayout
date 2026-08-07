@@ -15,6 +15,7 @@ Tags.lua
 TestMode.lua
 Minimap.lua
 Style.lua
+Serializer.lua
 Options.lua
 oUF_MyLayout.lua
 
