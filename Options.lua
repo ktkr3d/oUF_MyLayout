@@ -540,11 +540,23 @@ ns.SetupOptions = function()
                         name = "Settings",
                         order = 1,
                         args = {
+                            testModeButton = {
+                                type = "execute",
+                                name = function()
+                                    return ns.TestMode and "Disable Test Mode" or "Enable Test Mode"
+                                end,
+                                desc = "Toggle test mode on/off to preview unit frames with sample data",
+                                order = 0,
+                                width = "full",
+                                func = function()
+                                    ns.ToggleTestMode()
+                                end,
+                            },
                             testMode = {
                                 type = "toggle",
                                 name = "Test Mode",
                                 desc = "Toggle test mode to preview unit frames with sample data",
-                                order = 0,
+                                order = 0.5,
                                 width = "full",
                                 get = function() return ns.TestMode end,
                                 set = function(_, val) ns.ToggleTestMode(val) end,
