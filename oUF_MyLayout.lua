@@ -1,4 +1,4 @@
-﻿local addonName, ns = ...
+local addonName, ns = ...
 
 -- Get oUF object (global or from namespace)
 local oUF = ns.oUF or oUF
@@ -223,14 +223,15 @@ local function UpdateUnitFrame(self, isInit)
 
     if self.Name then
         local nConfig = uConfig.NameText or {}
+        local nFont = GetMedia("font", nConfig.Font or C.Media.Font)
+        local nSize = nConfig.Size or 20
+        local nOutline = nConfig.Outline or "OUTLINE"
+        self.Name:SetFont(nFont, nSize, nOutline)
+
         if nConfig.Enable == false then
             self.Name:Hide()
         else
             self.Name:Show()
-            local nFont = GetMedia("font", nConfig.Font or C.Media.Font)
-            local nSize = nConfig.Size or 20
-            local nOutline = nConfig.Outline or "OUTLINE"
-            self.Name:SetFont(nFont, nSize, nOutline)
 
             -- Apply only if position settings exist (relative to Health bar)
             if nConfig.Point then
@@ -451,6 +452,111 @@ local function UpdateUnitFrame(self, isInit)
     end
 end
 
+-- ------------------------------------------------------------------------
+-- Test Mode Helpers
+-- ------------------------------------------------------------------------
+ns.TestMode = false
+
+local sampleNames = {
+    player = "Test Player",
+    target = "Test Target",
+    targettarget = "Target of Target",
+    focus = "Focus Unit",
+    pet = "Test Pet",
+    boss1 = "Boss 1",
+    boss2 = "Boss 2",
+    boss3 = "Boss 3",
+    boss4 = "Boss 4",
+    boss5 = "Boss 5",
+}
+
+local function ApplyTestModeData(obj)
+    if not obj or not obj.style or obj.style ~= "MyLayout" then return end
+    obj:Show()
+
+    -- Set mock Health
+    if obj.Health then
+        obj.Health:SetMinMaxValues(0, 100)
+        obj.Health:SetValue(75)
+    end
+
+    -- Set mock Power
+    if obj.Power then
+        obj.Power:SetMinMaxValues(0, 100)
+        obj.Power:SetValue(60)
+    end
+
+    -- Set mock Name text (only if element is shown and font is set)
+    if obj.Name and obj.Name:IsShown() and obj.Name:GetFont() then
+        local u = obj.unit or "target"
+        local nameText = sampleNames[u] or (u:find("party") and "Party Member" or (u:find("raid") and "Raid Member" or "Test Unit"))
+        obj.Name:SetText(nameText)
+    end
+
+    -- Set mock Health text (HpVal, only if shown and font is set)
+    if obj.HpVal and obj.HpVal:IsShown() and obj.HpVal:GetFont() then
+        obj.HpVal:SetText("75.0%")
+    end
+
+    -- Castbar preview
+    if obj.Castbar then
+        obj.Castbar:Show()
+        obj.Castbar:SetMinMaxValues(0, 100)
+        obj.Castbar:SetValue(50)
+        if obj.Castbar.Text and obj.Castbar.Text:GetFont() then
+            obj.Castbar.Text:SetText("Casting Test Spell...")
+        end
+        if obj.Castbar.Time and obj.Castbar.Time:GetFont() then
+            obj.Castbar.Time:SetText("1.5s / 3.0s")
+        end
+        if obj.Castbar.Icon and not obj.Castbar.Icon:GetTexture() then
+            obj.Castbar.Icon:SetTexture("Interface\\Icons\\Spell_Nature_HealingTouch")
+        end
+    end
+end
+
+local function ClearTestModeData(obj)
+    if not obj or not obj.style or obj.style ~= "MyLayout" then return end
+    if obj.Castbar then
+        obj.Castbar:Hide()
+        obj.Castbar.casting = nil
+        obj.Castbar.channeling = nil
+    end
+
+    if obj.unit and UnitExists(obj.unit) then
+        if obj.UpdateAllElements then
+            obj:UpdateAllElements("TestModeDisabled")
+        end
+    else
+        if not obj:GetParent() or obj:GetParent() == UIParent then
+            if obj.unit and not UnitExists(obj.unit) then
+                obj:Hide()
+            end
+        end
+    end
+end
+
+function ns.ToggleTestMode(enable)
+    if InCombatLockdown() then
+        print("|cff00ff00oUF_MyLayout:|r Cannot toggle Test Mode during combat.")
+        return
+    end
+
+    if enable == nil then
+        ns.TestMode = not ns.TestMode
+    else
+        ns.TestMode = enable
+    end
+
+    if ns.TestMode then
+        print("|cff00ff00oUF_MyLayout:|r Test Mode |cff00ff00ENABLED|r.")
+    else
+        print("|cff00ff00oUF_MyLayout:|r Test Mode |cffff0000DISABLED|r.")
+    end
+
+    ns.UpdateFrames()
+end
+
 function ns.UpdateFrames()
     local C = ns.Config
     if not InCombatLockdown() then
@@ -511,7 +617,14 @@ function ns.UpdateFrames()
                 ns.party:SetAttribute("initial-height", C.Units.Party.Height)
                 ns.party:ClearAllPoints()
                 ns.party:SetPoint(unpack(C.Units.Party.Position))
-                RegisterStateDriver(ns.party, "visibility", "[group:party,nogroup:raid] show; hide")
+                if ns.TestMode then
+                    ns.party:SetAttribute("showSolo", true)
+                    ns.party:SetAttribute("showPlayer", true)
+                    RegisterStateDriver(ns.party, "visibility", "show")
+                else
+                    ns.party:SetAttribute("showSolo", false)
+                    RegisterStateDriver(ns.party, "visibility", "[group:party,nogroup:raid] show; hide")
+                end
             else
                 UnregisterStateDriver(ns.party, "visibility")
                 ns.party:Hide()
@@ -524,7 +637,14 @@ function ns.UpdateFrames()
                 ns.partytarget:SetAttribute("initial-height", C.Units.PartyTarget.Height)
                 ns.partytarget:ClearAllPoints()
                 ns.partytarget:SetPoint(unpack(C.Units.PartyTarget.Position))
-                RegisterStateDriver(ns.partytarget, "visibility", "[group:party,nogroup:raid] show; hide")
+                if ns.TestMode then
+                    ns.partytarget:SetAttribute("showSolo", true)
+                    ns.partytarget:SetAttribute("showPlayer", true)
+                    RegisterStateDriver(ns.partytarget, "visibility", "show")
+                else
+                    ns.partytarget:SetAttribute("showSolo", false)
+                    RegisterStateDriver(ns.partytarget, "visibility", "[group:party,nogroup:raid] show; hide")
+                end
             else
                 UnregisterStateDriver(ns.partytarget, "visibility")
                 ns.partytarget:Hide()
@@ -546,29 +666,36 @@ function ns.UpdateFrames()
                 for i = 1, 8 do
                     local header = ns.raidHeaders[i]
                     if header then
-                        local visibility = "custom "
-                        if C.Units.Raid.ShowParty then
-                            visibility = visibility .. "[group:party] show; "
-                            header:SetAttribute("showParty", true)
-                        else
-                            visibility = visibility .. "[group:raid] show; "
-                            header:SetAttribute("showParty", false)
-                        end
-
                         header:SetAttribute("initial-width", C.Units.Raid.Width)
                         header:SetAttribute("initial-height", C.Units.Raid.Height)
                         header:SetAttribute("xOffset", 0)
                         header:SetAttribute("yOffset", -spacing)
 
-                        if C.Units.Raid.ShowSolo then
-                            visibility = visibility .. "[nogroup] show; "
+                        if ns.TestMode then
+                            header:SetAttribute("showParty", true)
                             header:SetAttribute("showSolo", true)
+                            header:SetAttribute("showPlayer", true)
+                            RegisterStateDriver(header, "visibility", "show")
                         else
-                            header:SetAttribute("showSolo", false)
+                            local visibility = "custom "
+                            if C.Units.Raid.ShowParty then
+                                visibility = visibility .. "[group:party] show; "
+                                header:SetAttribute("showParty", true)
+                            else
+                                visibility = visibility .. "[group:raid] show; "
+                                header:SetAttribute("showParty", false)
+                            end
+
+                            if C.Units.Raid.ShowSolo then
+                                visibility = visibility .. "[nogroup] show; "
+                                header:SetAttribute("showSolo", true)
+                            else
+                                header:SetAttribute("showSolo", false)
+                            end
+                            
+                            visibility = visibility .. "hide"
+                            RegisterStateDriver(header, "visibility", visibility)
                         end
-                        
-                        visibility = visibility .. "hide"
-                        RegisterStateDriver(header, "visibility", visibility)
 
                         header:ClearAllPoints()
                         -- Fixed position for each group column
@@ -617,7 +744,16 @@ function ns.UpdateFrames()
                 ns.maintank:SetAttribute("initial-height", C.Units.MainTank.Height)
                 ns.maintank:ClearAllPoints()
                 ns.maintank:SetPoint(unpack(C.Units.MainTank.Position))
+                if ns.TestMode then
+                    ns.maintank:SetAttribute("showSolo", true)
+                    ns.maintank:SetAttribute("showPlayer", true)
+                    RegisterStateDriver(ns.maintank, "visibility", "show")
+                else
+                    ns.maintank:SetAttribute("showSolo", false)
+                    RegisterStateDriver(ns.maintank, "visibility", "[group:raid] show; hide")
+                end
             else
+                UnregisterStateDriver(ns.maintank, "visibility")
                 ns.maintank:Hide()
             end
         end
@@ -629,22 +765,36 @@ function ns.UpdateFrames()
                 ns.maintanktarget:SetAttribute("initial-height", C.Units.MainTankTarget.Height)
                 ns.maintanktarget:ClearAllPoints()
                 ns.maintanktarget:SetPoint(unpack(C.Units.MainTankTarget.Position))
+                if ns.TestMode then
+                    ns.maintanktarget:SetAttribute("showSolo", true)
+                    ns.maintanktarget:SetAttribute("showPlayer", true)
+                    RegisterStateDriver(ns.maintanktarget, "visibility", "show")
+                else
+                    ns.maintanktarget:SetAttribute("showSolo", false)
+                    RegisterStateDriver(ns.maintanktarget, "visibility", "[group:raid] show; hide")
+                end
             else
+                UnregisterStateDriver(ns.maintanktarget, "visibility")
                 ns.maintanktarget:Hide()
             end
         end
         for _, obj in pairs(oUF.objects) do
             if obj.style == "MyLayout" then
                 UpdateUnitFrame(obj)
-                if obj.unit and UnitExists(obj.unit) then
-                    if obj.Health and obj.Health.ForceUpdate then
-                        obj.Health:ForceUpdate()
-                    end
-                    if obj.Power and obj.Power.ForceUpdate then
-                        obj.Power:ForceUpdate()
-                    end
-                    if obj.ClassPower and obj.ClassPower.ForceUpdate then
-                        obj.ClassPower:ForceUpdate()
+                if ns.TestMode then
+                    ApplyTestModeData(obj)
+                else
+                    ClearTestModeData(obj)
+                    if obj.unit and UnitExists(obj.unit) then
+                        if obj.Health and obj.Health.ForceUpdate then
+                            obj.Health:ForceUpdate()
+                        end
+                        if obj.Power and obj.Power.ForceUpdate then
+                            obj.Power:ForceUpdate()
+                        end
+                        if obj.ClassPower and obj.ClassPower.ForceUpdate then
+                            obj.ClassPower:ForceUpdate()
+                        end
                     end
                 end
             end
@@ -704,7 +854,6 @@ Loader:SetScript("OnEvent", function(self, event, addon)
     ns.Version = C_AddOns.GetAddOnMetadata(addonName, "Version")
 
     -- Check dependency libraries
-    -- if not C_AddOns.IsAddOnLoaded("Ace3") or not C_AddOns.IsAddOnLoaded("LibSharedMedia-3.0") or not C_AddOns.IsAddOnLoaded("oUF") then
     if not C_AddOns.IsAddOnLoaded("Ace3") or not C_AddOns.IsAddOnLoaded("LibSharedMedia-3.0") then
         print("|cff00ff00oUF_MyLayout:|r |cffff0000Error:|r Required libraries (Ace3, LibSharedMedia-3.0, oUF) are missing or not enabled.")
         return
@@ -738,16 +887,19 @@ Loader:SetScript("OnEvent", function(self, event, addon)
     self:UnregisterEvent("ADDON_LOADED")
 end)
 
--- Slash Commands (/mylayout reset)
+-- Slash Commands (/mylayout reset, /mylayout test, /mylayout config)
 SLASH_OUF_MYLAYOUT1 = "/mylayout"
 SlashCmdList["OUF_MYLAYOUT"] = function(msg)
-    if msg == "reset" then
+    local cmd = msg and msg:lower():match("^%s*(.-)%s*$") or ""
+    if cmd == "reset" then
         ns.db:ResetProfile()
         print("|cff00ff00oUF_MyLayout:|r Current profile settings have been reset.")
-    elseif msg == "config" then
+    elseif cmd == "config" then
         LibStub("AceConfigDialog-3.0"):Open("oUF_MyLayout")
+    elseif cmd == "test" then
+        ns.ToggleTestMode()
     else
-        print("|cff00ff00oUF_MyLayout:|r Commands: /mylayout config, /mylayout reset")
+        print("|cff00ff00oUF_MyLayout:|r Commands: /mylayout config, /mylayout test, /mylayout reset")
         LibStub("AceConfigDialog-3.0"):Open("oUF_MyLayout")
     end
 end

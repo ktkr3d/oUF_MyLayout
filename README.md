@@ -21,5 +21,7 @@ oUF_MyLayout is a unit frame addon.
 ## Configuration
 
 ```text
-/mylayout config
+/mylayout config - Open configuration GUI
+/mylayout test   - Toggle test mode to preview frames
+/mylayout reset  - Reset profile settings
 ```

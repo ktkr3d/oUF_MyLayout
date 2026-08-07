@@ -540,6 +540,15 @@ ns.SetupOptions = function()
                         name = "Settings",
                         order = 1,
                         args = {
+                            testMode = {
+                                type = "toggle",
+                                name = "Test Mode",
+                                desc = "Toggle test mode to preview unit frames with sample data",
+                                order = 0,
+                                width = "full",
+                                get = function() return ns.TestMode end,
+                                set = function(_, val) ns.ToggleTestMode(val) end,
+                            },
                             disablePortraitsInRaid = {
                                 type = "toggle", name = "Disable Portraits in Raid", order = 1, width = "full",
                                 get = function() return ns.Config.General.DisablePortraitsInRaid end,
