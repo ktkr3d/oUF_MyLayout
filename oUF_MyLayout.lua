@@ -4,124 +4,130 @@ local addonName, ns = ...
 local oUF = ns.oUF or oUF
 
 -- ------------------------------------------------------------------------
+-- UpdateFrames helpers
+-- ------------------------------------------------------------------------
+
+-- Apply position/visibility to a simple single-unit frame.
+local function UpdateSingleFrame(frame, cfg)
+    if not frame then return end
+    if cfg.Enable then
+        frame:Show()
+        frame:ClearAllPoints()
+        frame:SetPoint(unpack(cfg.Position))
+    else
+        frame:Hide()
+    end
+end
+
+-- Apply position/visibility to a SecureHeader that uses a party-style
+-- visibility driver ("[group:party,nogroup:raid] show; hide").
+-- testVisibility : state-driver string used in Test Mode (default "show")
+-- liveVisibility : state-driver string used in live play
+local function UpdatePartyHeader(frame, cfg, liveVisibility, showPlayer)
+    if not frame then return end
+    if cfg.Enable then
+        frame:SetAttribute("initial-width",  cfg.Width)
+        frame:SetAttribute("initial-height", cfg.Height)
+        frame:ClearAllPoints()
+        frame:SetPoint(unpack(cfg.Position))
+        if ns.TestMode then
+            frame:SetAttribute("showSolo",   true)
+            frame:SetAttribute("showPlayer", true)
+            RegisterStateDriver(frame, "visibility", "show")
+        else
+            frame:SetAttribute("showSolo", false)
+            frame:SetAttribute("showPlayer", showPlayer ~= false)
+            RegisterStateDriver(frame, "visibility", liveVisibility)
+        end
+    else
+        UnregisterStateDriver(frame, "visibility")
+        frame:Hide()
+    end
+end
+
+local function UpdateMainTankTestFrame(frame, cfg)
+    if not frame then return end
+    if ns.TestMode and cfg.Enable then
+        if frame:GetParent() ~= UIParent then frame:SetParent(UIParent) end
+        frame:ClearAllPoints()
+        frame:SetPoint(unpack(cfg.Position))
+        frame:Show()
+    else
+        frame:Hide()
+    end
+end
+
+local function UpdateBossTestFrames(frames, cfg)
+    if not frames then return end
+    if ns.TestMode and cfg.Enable then
+        for i, frame in ipairs(frames) do
+            if frame:GetParent() ~= UIParent then frame:SetParent(UIParent) end
+            frame:ClearAllPoints()
+            if i == 1 then
+                frame:SetPoint(unpack(cfg.Position))
+            else
+                frame:SetPoint("TOP", frames[i - 1], "BOTTOM", 0, -10)
+            end
+            frame:Show()
+        end
+    else
+        for _, frame in ipairs(frames) do
+            frame:Hide()
+        end
+    end
+end
+
+-- ------------------------------------------------------------------------
 -- Update All Frames (Layout and Position)
 -- ------------------------------------------------------------------------
 function ns.UpdateFrames()
     local C = ns.Config
     if not InCombatLockdown() then
-        -- Player
-        if ns.player then
-            if C.Units.Player.Enable then
-                ns.player:Show()
-                ns.player:ClearAllPoints()
-                ns.player:SetPoint(unpack(C.Units.Player.Position))
-            else
-                ns.player:Hide()
-            end
+        -- ----------------------------------------------------------------
+        -- Single-unit frames (player / target / targettarget / pet / focus)
+        -- ----------------------------------------------------------------
+        local singleUnits = {
+            { frame = ns.player,       cfg = C.Units.Player },
+            { frame = ns.target,       cfg = C.Units.Target },
+            { frame = ns.targettarget, cfg = C.Units.TargetTarget },
+            { frame = ns.pet,          cfg = C.Units.Pet },
+            { frame = ns.focus,        cfg = C.Units.Focus },
+        }
+        for _, u in ipairs(singleUnits) do
+            UpdateSingleFrame(u.frame, u.cfg)
         end
-        -- Target
-        if ns.target then
-            if C.Units.Target.Enable then
-                ns.target:Show()
-                ns.target:ClearAllPoints()
-                ns.target:SetPoint(unpack(C.Units.Target.Position))
-            else
-                ns.target:Hide()
-            end
-        end
-        -- TargetTarget
-        if ns.targettarget then
-            if C.Units.TargetTarget.Enable then
-                ns.targettarget:Show()
-                ns.targettarget:ClearAllPoints()
-                ns.targettarget:SetPoint(unpack(C.Units.TargetTarget.Position))
-            else
-                ns.targettarget:Hide()
-            end
-        end
-        -- Pet
-        if ns.pet then
-            if C.Units.Pet.Enable then
-                ns.pet:Show()
-                ns.pet:ClearAllPoints()
-                ns.pet:SetPoint(unpack(C.Units.Pet.Position))
-            else
-                ns.pet:Hide()
-            end
-        end
-        -- Focus
-        if ns.focus then
-            if C.Units.Focus.Enable then
-                ns.focus:Show()
-                ns.focus:ClearAllPoints()
-                ns.focus:SetPoint(unpack(C.Units.Focus.Position))
-            else
-                ns.focus:Hide()
-            end
-        end
-        -- Party
-        if ns.party then
-            if C.Units.Party.Enable then
-                ns.party:SetAttribute("initial-width", C.Units.Party.Width)
-                ns.party:SetAttribute("initial-height", C.Units.Party.Height)
-                ns.party:ClearAllPoints()
-                ns.party:SetPoint(unpack(C.Units.Party.Position))
-                if ns.TestMode then
-                    ns.party:SetAttribute("showSolo", true)
-                    ns.party:SetAttribute("showPlayer", true)
-                    RegisterStateDriver(ns.party, "visibility", "show")
-                else
-                    ns.party:SetAttribute("showSolo", false)
-                    RegisterStateDriver(ns.party, "visibility", "[group:party,nogroup:raid] show; hide")
-                end
-            else
-                UnregisterStateDriver(ns.party, "visibility")
-                ns.party:Hide()
-            end
-        end
-        -- PartyTarget
-        if ns.partytarget then
-            if C.Units.PartyTarget.Enable then
-                ns.partytarget:SetAttribute("initial-width", C.Units.PartyTarget.Width)
-                ns.partytarget:SetAttribute("initial-height", C.Units.PartyTarget.Height)
-                ns.partytarget:ClearAllPoints()
-                ns.partytarget:SetPoint(unpack(C.Units.PartyTarget.Position))
-                if ns.TestMode then
-                    ns.partytarget:SetAttribute("showSolo", true)
-                    ns.partytarget:SetAttribute("showPlayer", true)
-                    RegisterStateDriver(ns.partytarget, "visibility", "show")
-                else
-                    ns.partytarget:SetAttribute("showSolo", false)
-                    RegisterStateDriver(ns.partytarget, "visibility", "[group:party,nogroup:raid] show; hide")
-                end
-            else
-                UnregisterStateDriver(ns.partytarget, "visibility")
-                ns.partytarget:Hide()
-            end
-        end
-        -- Raid
+
+        -- ----------------------------------------------------------------
+        -- Party / PartyTarget headers
+        -- ----------------------------------------------------------------
+        UpdatePartyHeader(ns.party,       C.Units.Party,       "[group:party,nogroup:raid] show; hide", false)
+        UpdatePartyHeader(ns.partytarget, C.Units.PartyTarget, "[group:party,nogroup:raid] show; hide", false)
+
+        -- ----------------------------------------------------------------
+        -- Raid headers
+        -- ----------------------------------------------------------------
         if ns.raid then
             if C.Units.Raid.Enable then
                 ns.raid:Show()
                 ns.raid:ClearAllPoints()
                 ns.raid:SetPoint(unpack(C.Units.Raid.Position))
-                
-                local spacing = 5
+
+                local spacing    = 5
                 local totalWidth = (C.Units.Raid.Width * 8) + (spacing * 7)
-                local totalHeight = (C.Units.Raid.Height * 5) + (spacing * 4)
+                local totalHeight= (C.Units.Raid.Height * 5) + (spacing * 4)
                 ns.raid:SetSize(totalWidth, totalHeight)
 
                 for i = 1, 8 do
                     local header = ns.raidHeaders[i]
                     if header then
-                        header:SetAttribute("initial-width", C.Units.Raid.Width)
+                        header:SetAttribute("initial-width",  C.Units.Raid.Width)
                         header:SetAttribute("initial-height", C.Units.Raid.Height)
                         header:SetAttribute("xOffset", 0)
                         header:SetAttribute("yOffset", -spacing)
 
                         if ns.TestMode then
-                            header:SetAttribute("showParty", true)
-                            header:SetAttribute("showSolo", true)
+                            header:SetAttribute("showParty",  true)
+                            header:SetAttribute("showSolo",   true)
                             header:SetAttribute("showPlayer", true)
                             RegisterStateDriver(header, "visibility", "show")
                         else
@@ -140,7 +146,7 @@ function ns.UpdateFrames()
                             else
                                 header:SetAttribute("showSolo", false)
                             end
-                            
+
                             visibility = visibility .. "hide"
                             RegisterStateDriver(header, "visibility", visibility)
                         end
@@ -161,13 +167,20 @@ function ns.UpdateFrames()
                 end
             end
         end
-        -- Boss
+
+        -- ----------------------------------------------------------------
+        -- Boss frames (boss1-5, stacked vertically)
+        -- ----------------------------------------------------------------
         if ns.boss then
             if C.Units.Boss.Enable then
                 local prevBoss
-                for i=1, 5 do
+                for i = 1, 5 do
                     if ns.boss[i] then
-                        ns.boss[i]:Show()
+                        if ns.TestMode or not UnitExists("boss" .. i) then
+                            ns.boss[i]:Hide()
+                        else
+                            ns.boss[i]:Show()
+                        end
                         ns.boss[i]:ClearAllPoints()
                         if i == 1 then
                             ns.boss[i]:SetPoint(unpack(C.Units.Boss.Position))
@@ -178,77 +191,45 @@ function ns.UpdateFrames()
                     end
                 end
             else
-                for i=1, 5 do
+                for i = 1, 5 do
                     if ns.boss[i] then ns.boss[i]:Hide() end
                 end
             end
         end
-        -- MainTank
-        if ns.maintank then
-            if C.Units.MainTank.Enable then
-                ns.maintank:Show()
-                ns.maintank:SetAttribute("initial-width", C.Units.MainTank.Width)
-                ns.maintank:SetAttribute("initial-height", C.Units.MainTank.Height)
-                ns.maintank:ClearAllPoints()
-                ns.maintank:SetPoint(unpack(C.Units.MainTank.Position))
-                if ns.TestMode then
-                    ns.maintank:SetAttribute("showSolo", true)
-                    ns.maintank:SetAttribute("showPlayer", true)
-                    RegisterStateDriver(ns.maintank, "visibility", "show")
-                else
-                    ns.maintank:SetAttribute("showSolo", false)
-                    RegisterStateDriver(ns.maintank, "visibility", "[group:raid] show; hide")
-                end
-            else
-                UnregisterStateDriver(ns.maintank, "visibility")
-                ns.maintank:Hide()
-            end
-        end
-        -- MainTankTarget
-        if ns.maintanktarget then
-            if C.Units.MainTankTarget.Enable then
-                ns.maintanktarget:Show()
-                ns.maintanktarget:SetAttribute("initial-width", C.Units.MainTankTarget.Width)
-                ns.maintanktarget:SetAttribute("initial-height", C.Units.MainTankTarget.Height)
-                ns.maintanktarget:ClearAllPoints()
-                ns.maintanktarget:SetPoint(unpack(C.Units.MainTankTarget.Position))
-                if ns.TestMode then
-                    ns.maintanktarget:SetAttribute("showSolo", true)
-                    ns.maintanktarget:SetAttribute("showPlayer", true)
-                    RegisterStateDriver(ns.maintanktarget, "visibility", "show")
-                else
-                    ns.maintanktarget:SetAttribute("showSolo", false)
-                    RegisterStateDriver(ns.maintanktarget, "visibility", "[group:raid] show; hide")
-                end
-            else
-                UnregisterStateDriver(ns.maintanktarget, "visibility")
-                ns.maintanktarget:Hide()
-            end
-        end
+        UpdateBossTestFrames(ns.testboss, C.Units.Boss)
 
+        -- ----------------------------------------------------------------
+        -- MainTank / MainTankTarget headers (raid-only visibility)
+        -- ----------------------------------------------------------------
+        UpdatePartyHeader(ns.maintank,       C.Units.MainTank,       "[group:raid] show; hide")
+        UpdatePartyHeader(ns.maintanktarget, C.Units.MainTankTarget, "[group:raid] show; hide")
+        UpdateMainTankTestFrame(ns.testmaintank, C.Units.MainTank)
+        UpdateMainTankTestFrame(ns.testmaintanktarget, C.Units.MainTankTarget)
+
+        -- ----------------------------------------------------------------
+        -- Refresh appearance of all spawned oUF frames
+        -- ----------------------------------------------------------------
         for _, obj in pairs(oUF.objects) do
             if obj.style == "MyLayout" then
                 if ns.UpdateUnitFrame then ns.UpdateUnitFrame(obj) end
                 if ns.TestMode then
-                    if ns.ApplyTestModeData then ns.ApplyTestModeData(obj) end
+                    if ns.ApplyTestModeData  then ns.ApplyTestModeData(obj) end
                 else
-                    if ns.ClearTestModeData then ns.ClearTestModeData(obj) end
+                    if obj.isTestPreview then
+                        obj:Hide()
+                    end
+                    if ns.ClearTestModeData  then ns.ClearTestModeData(obj) end
                     if obj.unit and UnitExists(obj.unit) then
-                        if obj.Health and obj.Health.ForceUpdate then
-                            obj.Health:ForceUpdate()
-                        end
-                        if obj.Power and obj.Power.ForceUpdate then
-                            obj.Power:ForceUpdate()
-                        end
-                        if obj.ClassPower and obj.ClassPower.ForceUpdate then
-                            obj.ClassPower:ForceUpdate()
-                        end
+                        if obj.Health     and obj.Health.ForceUpdate     then obj.Health:ForceUpdate() end
+                        if obj.Power      and obj.Power.ForceUpdate      then obj.Power:ForceUpdate() end
+                        if obj.ClassPower and obj.ClassPower.ForceUpdate then obj.ClassPower:ForceUpdate() end
                     end
                 end
             end
         end
     end
 end
+
 
 -- ------------------------------------------------------------------------
 -- Monitor Raid State for Portrait Override
@@ -271,6 +252,7 @@ end)
 -- ------------------------------------------------------------------------
 local hiddenParent = CreateFrame("Frame", nil, UIParent)
 hiddenParent:Hide()
+ns.testPreviewParent = hiddenParent
 
 local function HideBlizzardFrames()
     if CompactRaidFrameManager then
@@ -430,6 +412,13 @@ oUF:Factory(function(self)
         ns.boss[i] = self:Spawn("boss" .. i)
     end
 
+    ns.testboss = {}
+    for i = 1, 5 do
+        ns.testboss[i] = self:Spawn("player", "oUF_MyLayoutBossTest" .. i)
+        ns.testboss[i].isTestPreview = true
+        ns.testboss[i].unit = nil
+    end
+
     -- Spawn Main Tank frame
     ns.maintank = self:SpawnHeader("oUF_MyLayoutMainTank", nil,
         "showRaid", true,
@@ -450,6 +439,13 @@ oUF:Factory(function(self)
             self:SetAttribute('unitsuffix', 'target')
         ]]
     )
+
+    ns.testmaintank = self:Spawn("player", "oUF_MyLayoutMainTankTest")
+    ns.testmaintank.isTestPreview = true
+    ns.testmaintank.unit = nil
+    ns.testmaintanktarget = self:Spawn("target", "oUF_MyLayoutMainTankTargetTest")
+    ns.testmaintanktarget.isTestPreview = true
+    ns.testmaintanktarget.unit = nil
 
     -- Update all frames once at initial load
     ns.UpdateFrames()

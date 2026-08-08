@@ -114,6 +114,7 @@ function ns.UpdateUnitFrame(self, isInit)
         local nFont = GetMedia("font", nConfig.Font or C.Media.Font)
         local nSize = nConfig.Size or 20
         local nOutline = nConfig.Outline or "OUTLINE"
+        local isTestPreview = self.isTestPreview or (name and (name:match("BossTest") or name:match("MainTankTargetTest") or name:match("MainTankTest")))
         self.Name:SetFont(nFont, nSize, nOutline)
 
         if nConfig.Enable == false then
@@ -128,7 +129,9 @@ function ns.UpdateUnitFrame(self, isInit)
             end
 
             -- NameTag update
-            if uConfig.NameTag then
+            if isTestPreview then
+                if self.Untag then self:Untag(self.Name) end
+            elseif uConfig.NameTag then
                 self:Tag(self.Name, uConfig.NameTag)
                 self.Name:UpdateTag()
             end
