@@ -267,45 +267,84 @@ function ns.UpdateUnitFrame(self, isInit)
     if self.CreateAuras then
         local aConfig = uConfig.Buffs or {}
         local dConfig = uConfig.Debuffs or {}
-        local hasAuraConfig = (aConfig.Enable or dConfig.Enable)
         local isAuraSupported = unit and not (unit:match("target") and unit ~= "target") and not (unit:match("pet") and unit ~= "pet")
 
-        if hasAuraConfig and isAuraSupported then
-            if not self.Auras then
-                self.Auras = self:CreateAuras()
-                self.Auras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 10)
-                self.Auras:SetSize(uConfig.Width, 60)
-                self.Auras:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
-                self.Auras:SetFlowLayoutGrowthDirection(1, 1)
-                self.Auras:AddGroup("HELPFUL", {
+        if aConfig.Enable and isAuraSupported then
+            local buffSize = aConfig.Size or 20
+            local buffX = aConfig.X or 0
+            local buffY = aConfig.Y or 10
+
+            if not self.BuffAuras or self.BuffAuras._size ~= buffSize or self.BuffAuras._x ~= buffX or self.BuffAuras._y ~= buffY then
+                if self.BuffAuras then
+                    self.BuffAuras:Hide()
+                    self.BuffAuras = nil
+                end
+
+                self.BuffAuras = self:CreateAuras()
+                self.BuffAuras._size = buffSize
+                self.BuffAuras._x = buffX
+                self.BuffAuras._y = buffY
+                self.BuffAuras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", buffX, buffY)
+                self.BuffAuras:SetSize(uConfig.Width, 60)
+                self.BuffAuras:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
+                self.BuffAuras:SetFlowLayoutGrowthDirection(1, 1)
+                self.BuffAuras:SetFlowLayoutPadding(0, 0, 0, 0)
+                self.BuffAuras:AddGroup("HELPFUL", {
                     maxFrameCount = 20,
-                    layout = {
-                        elementSpacing = 4,
-                        lineSpacing = 4,
-                    },
-                })
-                self.Auras:AddGroup("HARMFUL", {
-                    maxFrameCount = 20,
-                    layout = {
-                        elementSpacing = 4,
-                        lineSpacing = 4,
-                    },
+                    size = buffSize,
+                    layout = { elementSpacing = 4, lineSpacing = 4 },
                 })
             end
 
-            self.Auras:Show()
-            self.Auras:SetWidth(uConfig.Width)
-            self.Auras:SetHeight(60)
-            self.Auras:ClearAllPoints()
-            self.Auras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", (aConfig.X or 0), (aConfig.Y or 10))
+            self.BuffAuras:Show()
+            self.BuffAuras:SetWidth(uConfig.Width)
+            self.BuffAuras:SetHeight(60)
+            self.BuffAuras:ClearAllPoints()
+            self.BuffAuras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", buffX, buffY)
+            if self.BuffAuras.ForceUpdate then
+                self.BuffAuras:ForceUpdate()
+            end
+        elseif self.BuffAuras then
+            self.BuffAuras:Hide()
+        end
 
-            if self.Auras.ForceUpdate then
-                self.Auras:ForceUpdate()
+        if dConfig.Enable and isAuraSupported then
+            local debuffSize = dConfig.Size or 20
+            local debuffX = dConfig.X or 0
+            local debuffY = dConfig.Y or 35
+
+            if not self.DebuffAuras or self.DebuffAuras._size ~= debuffSize or self.DebuffAuras._x ~= debuffX or self.DebuffAuras._y ~= debuffY then
+                if self.DebuffAuras then
+                    self.DebuffAuras:Hide()
+                    self.DebuffAuras = nil
+                end
+
+                self.DebuffAuras = self:CreateAuras()
+                self.DebuffAuras._size = debuffSize
+                self.DebuffAuras._x = debuffX
+                self.DebuffAuras._y = debuffY
+                self.DebuffAuras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", debuffX, debuffY)
+                self.DebuffAuras:SetSize(uConfig.Width, 60)
+                self.DebuffAuras:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
+                self.DebuffAuras:SetFlowLayoutGrowthDirection(1, 1)
+                self.DebuffAuras:SetFlowLayoutPadding(0, 0, 0, 0)
+                self.DebuffAuras:AddGroup("HARMFUL", {
+                    maxFrameCount = 20,
+                    size = debuffSize,
+                    layout = { elementSpacing = 4, lineSpacing = 4 },
+                })
             end
-        else
-            if self.Auras then
-                self.Auras:Hide()
+
+            self.DebuffAuras:Show()
+            self.DebuffAuras:SetWidth(uConfig.Width)
+            self.DebuffAuras:SetHeight(60)
+            self.DebuffAuras:ClearAllPoints()
+            self.DebuffAuras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", debuffX, debuffY)
+            if self.DebuffAuras.ForceUpdate then
+                self.DebuffAuras:ForceUpdate()
             end
+        elseif self.DebuffAuras then
+            self.DebuffAuras:Hide()
         end
     elseif self.Buffs then
         local bConfig = uConfig.Buffs or {}
@@ -704,13 +743,19 @@ function ns.Shared(self, unit)
 
     if isAuraSupported then
         if self.CreateAuras then
-            self.Auras = self:CreateAuras()
-            self.Auras:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
-            self.Auras:SetFlowLayoutGrowthDirection(1, 1)
-            self.Auras:SetFlowLayoutPadding(0, 0, 0, 0)
-            self.Auras:AddGroup("HELPFUL", { maxFrameCount = 20, layout = { elementSpacing = 4, lineSpacing = 4 } })
-            self.Auras:AddGroup("HARMFUL", { maxFrameCount = 20, layout = { elementSpacing = 4, lineSpacing = 4 } })
-            self.Auras:Hide()
+            self.BuffAuras = self:CreateAuras()
+            self.BuffAuras:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
+            self.BuffAuras:SetFlowLayoutGrowthDirection(1, 1)
+            self.BuffAuras:SetFlowLayoutPadding(0, 0, 0, 0)
+            self.BuffAuras:AddGroup("HELPFUL", { maxFrameCount = 20, layout = { elementSpacing = 4, lineSpacing = 4 } })
+            self.BuffAuras:Hide()
+
+            self.DebuffAuras = self:CreateAuras()
+            self.DebuffAuras:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
+            self.DebuffAuras:SetFlowLayoutGrowthDirection(1, 1)
+            self.DebuffAuras:SetFlowLayoutPadding(0, 0, 0, 0)
+            self.DebuffAuras:AddGroup("HARMFUL", { maxFrameCount = 20, layout = { elementSpacing = 4, lineSpacing = 4 } })
+            self.DebuffAuras:Hide()
         else
             local Buffs = CreateFrame("Frame", nil, self)
             Buffs.gap = true
