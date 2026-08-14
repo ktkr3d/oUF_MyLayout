@@ -33,8 +33,12 @@ ns.GetMedia = GetMedia
 -- Filter Functions
 -- ------------------------------------------------------------------------
 local function CustomFilter(element, unit, data)
-    if element.onlyShowPlayer then
-        return data.sourceUnit == "player" or data.sourceUnit == "vehicle" or data.sourceUnit == "pet"
+    if element and element.onlyShowPlayer then
+        if not data or not data.sourceUnit then
+            return true
+        end
+        local source = data.sourceUnit
+        return source == "player" or source == "vehicle" or source == "pet"
     end
     return true
 end
@@ -260,7 +264,50 @@ function ns.UpdateUnitFrame(self, isInit)
         end
     end
 
-    if self.Buffs then
+    if self.CreateAuras then
+        local aConfig = uConfig.Buffs or {}
+        local dConfig = uConfig.Debuffs or {}
+        local hasAuraConfig = (aConfig.Enable or dConfig.Enable)
+        local isAuraSupported = unit and not (unit:match("target") and unit ~= "target") and not (unit:match("pet") and unit ~= "pet")
+
+        if hasAuraConfig and isAuraSupported then
+            if not self.Auras then
+                self.Auras = self:CreateAuras()
+                self.Auras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 10)
+                self.Auras:SetSize(uConfig.Width, 60)
+                self.Auras:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
+                self.Auras:SetFlowLayoutGrowthDirection(1, 1)
+                self.Auras:AddGroup("HELPFUL", {
+                    maxFrameCount = 20,
+                    layout = {
+                        elementSpacing = 4,
+                        lineSpacing = 4,
+                    },
+                })
+                self.Auras:AddGroup("HARMFUL", {
+                    maxFrameCount = 20,
+                    layout = {
+                        elementSpacing = 4,
+                        lineSpacing = 4,
+                    },
+                })
+            end
+
+            self.Auras:Show()
+            self.Auras:SetWidth(uConfig.Width)
+            self.Auras:SetHeight(60)
+            self.Auras:ClearAllPoints()
+            self.Auras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", (aConfig.X or 0), (aConfig.Y or 10))
+
+            if self.Auras.ForceUpdate then
+                self.Auras:ForceUpdate()
+            end
+        else
+            if self.Auras then
+                self.Auras:Hide()
+            end
+        end
+    elseif self.Buffs then
         local bConfig = uConfig.Buffs or {}
         local isAuraSupported = unit and not (unit:match("target") and unit ~= "target") and not (unit:match("pet") and unit ~= "pet")
 
@@ -273,19 +320,21 @@ function ns.UpdateUnitFrame(self, isInit)
             self.Buffs:ClearAllPoints()
             self.Buffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", bConfig.X or 0, bConfig.Y or 5)
             self.Buffs.onlyShowPlayer = bConfig.PlayerOnly
-            if not isInit then
-                if not self:IsElementEnabled("Buffs") then self:EnableElement("Buffs") end
-                if self.Buffs.ForceUpdate then self.Buffs:ForceUpdate() end
+            if not self:IsElementEnabled("Buffs") then
+                self:EnableElement("Buffs")
+            end
+            if self.Buffs.ForceUpdate then
+                self.Buffs:ForceUpdate()
             end
         else
             self.Buffs:Hide()
-            if not isInit and self:IsElementEnabled("Buffs") then
+            if self:IsElementEnabled("Buffs") then
                 self:DisableElement("Buffs")
             end
         end
     end
 
-    if self.Debuffs then
+    if not self.CreateAuras and self.Debuffs then
         local dConfig = uConfig.Debuffs or {}
         local isAuraSupported = unit and not (unit:match("target") and unit ~= "target") and not (unit:match("pet") and unit ~= "pet")
 
@@ -298,13 +347,15 @@ function ns.UpdateUnitFrame(self, isInit)
             self.Debuffs:ClearAllPoints()
             self.Debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", dConfig.X or 0, dConfig.Y or 35)
             self.Debuffs.onlyShowPlayer = dConfig.PlayerOnly
-            if not isInit then
-                if not self:IsElementEnabled("Debuffs") then self:EnableElement("Debuffs") end
-                if self.Debuffs.ForceUpdate then self.Debuffs:ForceUpdate() end
+            if not self:IsElementEnabled("Debuffs") then
+                self:EnableElement("Debuffs")
+            end
+            if self.Debuffs.ForceUpdate then
+                self.Debuffs:ForceUpdate()
             end
         else
             self.Debuffs:Hide()
-            if not isInit and self:IsElementEnabled("Debuffs") then
+            if self:IsElementEnabled("Debuffs") then
                 self:DisableElement("Debuffs")
             end
         end
@@ -648,27 +699,37 @@ function ns.Shared(self, unit)
     AssistantIndicator:SetTexture("Interface\\GroupFrame\\UI-Group-AssistantIcon")
     self.AssistantIndicator = AssistantIndicator
 
-    -- 17. Buffs / Debuffs
+    -- 17. Buffs / Debuffs (oUF 14 uses Auras, older oUF uses Buffs/Debuffs)
     local isAuraSupported = unit and not (unit:match("target") and unit ~= "target") and not (unit:match("pet") and unit ~= "pet")
 
     if isAuraSupported then
-        local Buffs = CreateFrame("Frame", nil, self)
-        Buffs.gap = true
-        Buffs.initialAnchor = "BOTTOMLEFT"
-        Buffs["growth-x"] = "RIGHT"
-        Buffs["growth-y"] = "UP"
-        Buffs.showStealableBuffs = true
-        Buffs.CustomFilter = CustomFilter
-        self.Buffs = Buffs
+        if self.CreateAuras then
+            self.Auras = self:CreateAuras()
+            self.Auras:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
+            self.Auras:SetFlowLayoutGrowthDirection(1, 1)
+            self.Auras:SetFlowLayoutPadding(0, 0, 0, 0)
+            self.Auras:AddGroup("HELPFUL", { maxFrameCount = 20, layout = { elementSpacing = 4, lineSpacing = 4 } })
+            self.Auras:AddGroup("HARMFUL", { maxFrameCount = 20, layout = { elementSpacing = 4, lineSpacing = 4 } })
+            self.Auras:Hide()
+        else
+            local Buffs = CreateFrame("Frame", nil, self)
+            Buffs.gap = true
+            Buffs.initialAnchor = "BOTTOMLEFT"
+            Buffs["growth-x"] = "RIGHT"
+            Buffs["growth-y"] = "UP"
+            Buffs.showStealableBuffs = true
+            Buffs.CustomFilter = CustomFilter
+            self.Buffs = Buffs
 
-        local Debuffs = CreateFrame("Frame", nil, self)
-        Debuffs.gap = true
-        Debuffs.initialAnchor = "BOTTOMLEFT"
-        Debuffs["growth-x"] = "RIGHT"
-        Debuffs["growth-y"] = "UP"
-        Debuffs.showDebuffType = true
-        Debuffs.CustomFilter = CustomFilter
-        self.Debuffs = Debuffs
+            local Debuffs = CreateFrame("Frame", nil, self)
+            Debuffs.gap = true
+            Debuffs.initialAnchor = "BOTTOMLEFT"
+            Debuffs["growth-x"] = "RIGHT"
+            Debuffs["growth-y"] = "UP"
+            Debuffs.showDebuffType = true
+            Debuffs.CustomFilter = CustomFilter
+            self.Debuffs = Debuffs
+        end
     end
 
     -- 18. Range
