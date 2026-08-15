@@ -35,7 +35,7 @@ ns.GetMedia = GetMedia
 local function CustomFilter(element, unit, data)
     if element and element.onlyShowPlayer then
         if not data or not data.sourceUnit then
-            return true
+            return false
         end
         local source = data.sourceUnit
         return source == "player" or source == "vehicle" or source == "pet"
@@ -69,6 +69,8 @@ local function UpdateIcon(self, icon, iconKey, iConfig, defaultIconsConfig)
         icon:SetAlpha(0)
     end
 end
+
+
 
 -- ------------------------------------------------------------------------
 -- Frame Update Function (Live Update)
@@ -273,8 +275,9 @@ function ns.UpdateUnitFrame(self, isInit)
             local buffSize = aConfig.Size or 20
             local buffX = aConfig.X or 0
             local buffY = aConfig.Y or 10
+            local playerOnly = aConfig.PlayerOnly
 
-            if not self.BuffAuras or self.BuffAuras._size ~= buffSize or self.BuffAuras._x ~= buffX or self.BuffAuras._y ~= buffY then
+            if not self.BuffAuras or self.BuffAuras._size ~= buffSize or self.BuffAuras._x ~= buffX or self.BuffAuras._y ~= buffY or self.BuffAuras.onlyShowPlayer ~= playerOnly then
                 if self.BuffAuras then
                     self.BuffAuras:Hide()
                     self.BuffAuras = nil
@@ -284,12 +287,15 @@ function ns.UpdateUnitFrame(self, isInit)
                 self.BuffAuras._size = buffSize
                 self.BuffAuras._x = buffX
                 self.BuffAuras._y = buffY
+                self.BuffAuras.onlyShowPlayer = playerOnly
                 self.BuffAuras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", buffX, buffY)
                 self.BuffAuras:SetSize(uConfig.Width, 60)
                 self.BuffAuras:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
                 self.BuffAuras:SetFlowLayoutGrowthDirection(1, 1)
                 self.BuffAuras:SetFlowLayoutPadding(0, 0, 0, 0)
-                self.BuffAuras:AddGroup("HELPFUL", {
+                
+                local filterStr = playerOnly and "HELPFUL|PLAYER" or "HELPFUL"
+                self.BuffAuras:AddGroup(filterStr, {
                     maxFrameCount = 20,
                     size = buffSize,
                     layout = { elementSpacing = 4, lineSpacing = 4 },
@@ -312,8 +318,11 @@ function ns.UpdateUnitFrame(self, isInit)
             local debuffSize = dConfig.Size or 20
             local debuffX = dConfig.X or 0
             local debuffY = dConfig.Y or 35
+            local playerOnly = dConfig.PlayerOnly
 
-            if not self.DebuffAuras or self.DebuffAuras._size ~= debuffSize or self.DebuffAuras._x ~= debuffX or self.DebuffAuras._y ~= debuffY then
+            -- If size or position changed, need to recreate
+            if not self.DebuffAuras or self.DebuffAuras._size ~= debuffSize or self.DebuffAuras._x ~= debuffX 
+                or self.DebuffAuras._y ~= debuffY or self.DebuffAuras.onlyShowPlayer ~= playerOnly then
                 if self.DebuffAuras then
                     self.DebuffAuras:Hide()
                     self.DebuffAuras = nil
@@ -323,16 +332,22 @@ function ns.UpdateUnitFrame(self, isInit)
                 self.DebuffAuras._size = debuffSize
                 self.DebuffAuras._x = debuffX
                 self.DebuffAuras._y = debuffY
+                self.DebuffAuras.onlyShowPlayer = playerOnly
                 self.DebuffAuras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", debuffX, debuffY)
                 self.DebuffAuras:SetSize(uConfig.Width, 60)
                 self.DebuffAuras:SetFlowLayoutAnchorPoint("BOTTOMLEFT")
                 self.DebuffAuras:SetFlowLayoutGrowthDirection(1, 1)
                 self.DebuffAuras:SetFlowLayoutPadding(0, 0, 0, 0)
-                self.DebuffAuras:AddGroup("HARMFUL", {
+                
+                -- Create group options
+                local groupOptions = {
                     maxFrameCount = 20,
                     size = debuffSize,
                     layout = { elementSpacing = 4, lineSpacing = 4 },
-                })
+                }
+                
+                local filterStr = playerOnly and "HARMFUL|PLAYER" or "HARMFUL"
+                self.DebuffAuras:AddGroup(filterStr, groupOptions)
             end
 
             self.DebuffAuras:Show()
@@ -340,6 +355,10 @@ function ns.UpdateUnitFrame(self, isInit)
             self.DebuffAuras:SetHeight(60)
             self.DebuffAuras:ClearAllPoints()
             self.DebuffAuras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", debuffX, debuffY)
+            
+            -- Store PlayerOnly flag and apply filtering
+            self.DebuffAuras.onlyShowPlayer = playerOnly
+            
             if self.DebuffAuras.ForceUpdate then
                 self.DebuffAuras:ForceUpdate()
             end
@@ -783,6 +802,7 @@ function ns.Shared(self, unit)
         outsideAlpha = 0.4,
     }
     self.Range = Range
+
 
     -- Apply style
     ns.UpdateUnitFrame(self, true)
