@@ -674,7 +674,7 @@ function ns.Shared(self, unit)
         for i = 1, 10 do
             local bar = CreateFrame("StatusBar", nil, self)
             bar:SetHeight(10)
-            bar:SetWidth((254 - (5 * 2)) / 6)
+            bar:SetWidth(30) 
 
             if i == 1 then
                 bar:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 5)
@@ -691,13 +691,14 @@ function ns.Shared(self, unit)
         end
 
         ClassPower.PostUpdate = function(element, cur, max, hasMaxChanged, powerType)
-            if hasMaxChanged then
+            local maxPoints = (type(max) == "number" and max > 0) and max or 5
+
+            if hasMaxChanged or element.__lastMax ~= maxPoints then
+                element.__lastMax = maxPoints
                 local spacing = 2
                 local width = self:GetWidth()
-                local maxPoints = max or 5
-                if type(maxPoints) ~= "number" or issecretvalue(maxPoints) then maxPoints = 5 end
-                
                 local barWidth = (width - (spacing * (maxPoints - 1))) / maxPoints
+                
                 for i = 1, #element do
                     element[i]:SetWidth(barWidth)
                 end
