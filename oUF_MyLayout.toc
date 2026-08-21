@@ -1,14 +1,24 @@
-## Interface: 120005
+## Interface: 120100
 ## Title: oUF_MyLayout
 ## Author: ktkr3d
-## Version: v0.3.3
+## Version: v0.3.4
 ## X-oUF: oUF_MyLayout
 ## X-Source: https://github.com/ktkr3d/oUF_MyLayout
-## RequiredDeps: Ace3, LibSharedMedia-3.0
 ## Notes: oUF_MyLayout is a unit frame addon.
 ## SavedVariables: oUF_MyLayoutDB
 ## Category: Unit Frames
 ## IconTexture: Interface\Icons\Achievement_Reputation_Kirintor
+
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
+
+libs\AceConfig-3.0\AceConfig-3.0.xml
+libs\AceDB-3.0\AceDB-3.0.xml
+libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
+libs\AceSerializer-3.0\AceSerializer-3.0.xml
+libs\LibSharedMedia-3.0\lib.xml
 
 libs\oUF14\oUF.xml
 
@@ -20,4 +30,3 @@ Style.lua
 Serializer.lua
 Options.lua
 oUF_MyLayout.lua
-
