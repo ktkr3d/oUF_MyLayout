@@ -468,8 +468,18 @@ function ns.Shared(self, unit)
         end)
     end
 
-    self:SetScript("OnEnter", UnitFrame_OnEnter)
-    self:SetScript("OnLeave", UnitFrame_OnLeave)
+    -- workaround for oUF 14
+    local function Custom_UnitFrame_OnEnter(self)
+        self.unit = self.__unit or SecureButton_GetModifiedUnit(self)
+        UnitFrame_OnEnter(self)
+    end
+
+    local function Custom_UnitFrame_OnLeave(self)
+        UnitFrame_OnLeave(self)
+    end
+
+    self:SetScript("OnEnter", Custom_UnitFrame_OnEnter)
+    self:SetScript("OnLeave", Custom_UnitFrame_OnLeave)
 
     -- Set unit for initialization
     self.unit = unit
