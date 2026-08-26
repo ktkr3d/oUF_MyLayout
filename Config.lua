@@ -428,6 +428,7 @@ ns.Config = {
             ShowParty = true,
             Width = 80,
             Height = 36,
+            AutoFitGroups = true, -- Automatically shrink unit width when max group exceeds 5
             HealthHeight = 22,
             PowerHeight = 8,
             PowerBarTexture = nil,

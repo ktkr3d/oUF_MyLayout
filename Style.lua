@@ -97,7 +97,12 @@ function ns.UpdateUnitFrame(self, isInit)
     local fontMain = GetMedia("font", C.Media.Font)
 
     if not InCombatLockdown() then
-        self:SetSize(uConfig.Width, uConfig.Height)
+        local frameWidth = uConfig.Width
+        -- For Raid unit frames, use the dynamically calculated effective width if available
+        if name and name:match("oUF_MyLayoutRaid") and ns.raidEffectiveWidth then
+            frameWidth = ns.raidEffectiveWidth
+        end
+        self:SetSize(frameWidth, uConfig.Height)
     end
 
     if self.Health then

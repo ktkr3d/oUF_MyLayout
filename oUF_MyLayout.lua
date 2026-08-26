@@ -78,6 +78,24 @@ local function UpdateBossTestFrames(frames, cfg)
 end
 
 -- ------------------------------------------------------------------------
+-- Raid group helper
+-- ------------------------------------------------------------------------
+-- Returns the highest group number among current raid members.
+-- Returns 0 when not in a raid (or in test mode where no real roster exists).
+local function GetMaxRaidGroup()
+    local maxGroup = 0
+    local numMembers = GetNumGroupMembers()
+    if numMembers == 0 then return 0 end
+    for i = 1, numMembers do
+        local _, _, subgroup = GetRaidRosterInfo(i)
+        if subgroup and subgroup > maxGroup then
+            maxGroup = subgroup
+        end
+    end
+    return maxGroup
+end
+
+-- ------------------------------------------------------------------------
 -- Update All Frames (Layout and Position)
 -- ------------------------------------------------------------------------
 function ns.UpdateFrames()
@@ -112,15 +130,38 @@ function ns.UpdateFrames()
                 ns.raid:ClearAllPoints()
                 ns.raid:SetPoint(unpack(C.Units.Raid.Position))
 
-                local spacing    = 5
-                local totalWidth = (C.Units.Raid.Width * 8) + (spacing * 7)
-                local totalHeight= (C.Units.Raid.Height * 5) + (spacing * 4)
+                local spacing = 5
+
+                -- Determine effective unit width based on occupied groups.
+                -- Groups 1-5 : use the configured fixed Width (container holds all 8 slots).
+                -- Groups 6-8 : shrink each unit so the total fits within Width*5+spacing*4,
+                --              then re-pack only the occupied groups left-to-right.
+                local maxGroup = ns.TestMode and 0 or GetMaxRaidGroup()
+                local effectiveWidth
+                local numGroups  -- number of visible group columns in the container
+                if maxGroup >= 6 and C.Units.Raid.AutoFitGroups then
+                    numGroups    = maxGroup
+                    local maxTotalWidth = C.Units.Raid.Width * 5 + spacing * 4
+                    effectiveWidth = math.floor((maxTotalWidth - spacing * (numGroups - 1)) / numGroups)
+                    ns.raidEffectiveWidth = effectiveWidth
+                else
+                    effectiveWidth = C.Units.Raid.Width
+                    numGroups = 8 -- container always reserves space for all 8 groups
+                    ns.raidEffectiveWidth = nil -- use uConfig.Width directly in UpdateUnitFrame
+                end
+
+                local totalWidth  = effectiveWidth * numGroups + spacing * (numGroups - 1)
+                local totalHeight = C.Units.Raid.Height * 5 + spacing * 4
                 ns.raid:SetSize(totalWidth, totalHeight)
 
+                -- When maxGroup >= 6 we re-pack groups sequentially (group i => column i-1)
+                -- so every occupied group is flush against the previous one.
+                -- When maxGroup <= 5 the original 8-slot fixed layout is preserved.
+                local colIndex = 0  -- zero-based column counter for the re-pack case
                 for i = 1, 8 do
                     local header = ns.raidHeaders[i]
                     if header then
-                        header:SetAttribute("initial-width",  C.Units.Raid.Width)
+                        header:SetAttribute("initial-width",  effectiveWidth)
                         header:SetAttribute("initial-height", C.Units.Raid.Height)
                         header:SetAttribute("xOffset", 0)
                         header:SetAttribute("yOffset", -spacing)
@@ -152,7 +193,15 @@ function ns.UpdateFrames()
                         end
 
                         header:ClearAllPoints()
-                        local offsetX = (i - 1) * (C.Units.Raid.Width + spacing)
+                        local offsetX
+                        if maxGroup >= 6 then
+                            -- Re-pack: group i occupies column colIndex
+                            offsetX = colIndex * (effectiveWidth + spacing)
+                            colIndex = colIndex + 1
+                        else
+                            -- Fixed 8-slot layout: column index = group number - 1
+                            offsetX = (i - 1) * (effectiveWidth + spacing)
+                        end
                         header:SetPoint("TOPLEFT", ns.raid, "TOPLEFT", offsetX, 0)
                     end
                 end
