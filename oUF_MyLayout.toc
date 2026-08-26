@@ -1,7 +1,7 @@
 ## Interface: 120100
 ## Title: oUF_MyLayout
 ## Author: ktkr3d
-## Version: v0.3.6
+## Version: v0.3.7
 ## X-oUF: oUF_MyLayout
 ## X-Source: https://github.com/ktkr3d/oUF_MyLayout
 ## Notes: oUF_MyLayout is a unit frame addon.
