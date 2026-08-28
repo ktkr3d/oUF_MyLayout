@@ -139,9 +139,9 @@ function ns.UpdateFrames()
                 local maxGroup = ns.TestMode and 0 or GetMaxRaidGroup()
                 local effectiveWidth
                 local numGroups  -- number of visible group columns in the container
-                if maxGroup >= 6 and C.Units.Raid.AutoFitGroups then
+                if maxGroup > C.Units.Raid.AutoFitGroupNum then
                     numGroups    = maxGroup
-                    local maxTotalWidth = C.Units.Raid.Width * 5 + spacing * 4
+                    local maxTotalWidth = C.Units.Raid.Width * C.Units.Raid.AutoFitGroupNum + spacing * (C.Units.Raid.AutoFitGroupNum - 1)
                     effectiveWidth = math.floor((maxTotalWidth - spacing * (numGroups - 1)) / numGroups)
                     ns.raidEffectiveWidth = effectiveWidth
                 else
@@ -151,7 +151,7 @@ function ns.UpdateFrames()
                 end
 
                 local totalWidth  = effectiveWidth * numGroups + spacing * (numGroups - 1)
-                local totalHeight = C.Units.Raid.Height * 5 + spacing * 4
+                local totalHeight = C.Units.Raid.Height * C.Units.Raid.AutoFitGroupNum + spacing * (C.Units.Raid.AutoFitGroupNum - 1)
                 ns.raid:SetSize(totalWidth, totalHeight)
 
                 -- When maxGroup >= 6 we re-pack groups sequentially (group i => column i-1)

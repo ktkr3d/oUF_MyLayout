@@ -584,6 +584,24 @@ ns.SetupOptions = function()
                                     if ns.UpdateMinimapButton then ns.UpdateMinimapButton() end
                                 end,
                             },
+                            autoFitGroups = {
+                                name = "Auto Fit Groups",
+                                desc = "Automatically fit the raid frame width based on the number of groups",
+                                type = "select",
+                                values = {
+                                    [4] = "4",
+                                    [5] = "5",
+                                    [6] = "6",
+                                    [7] = "7",
+                                    [8] = "8",
+                                },
+                                get = function()
+                                    return ns.Config.Units.Raid.AutoFitGroupNum or 8
+                                end,
+                                set = function(_, val)
+                                    ns.Config.Units.Raid.AutoFitGroupNum = val
+                                end,
+                            },
                         },
                     },
                     colors = {
