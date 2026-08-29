@@ -81,7 +81,7 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
             type = "group", name = iconName, order = order, inline = true,
             args = {
                 enable = {
-                    type = "toggle", name = "Enable", order = 1,
+                    type = "toggle", name = "Enable", order = 1, width = "full",
                     get = function() return getIconConfig().Enable end,
                     set = function(_, val) getIconConfig().Enable = val; ns.UpdateFrames() end,
                 },
@@ -114,7 +114,7 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
             type = "group", name = "General", order = 10,
             args = {
                 enable = {
-                    type = "toggle", name = "Enable", order = 0,
+                    type = "toggle", name = "Enable", order = 0, width = "full",
                     get = function() return config.Enable end,
                     set = function(_, val) config.Enable = val; ns.UpdateFrames() end,
                 },
@@ -485,6 +485,11 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
     end
 
     if key == "Raid" then
+        args.general.args.section_break = {
+            type = "description",
+            name = " ",
+            order = 6.5,
+        }
         args.general.args.showParty = {
             type = "toggle", name = "Show Party", order = 7,
             get = function() return config.ShowParty end,
