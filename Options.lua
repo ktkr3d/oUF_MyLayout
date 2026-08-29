@@ -230,7 +230,7 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
             type = "group", name = "Portrait", order = 30,
             args = {
                 enable = {
-                    type = "toggle", name = "Enable", order = 1,
+                    type = "toggle", name = "Enable", order = 1, width = "full",
                     get = function() return config.Portrait.Enable end,
                     set = function(_, val) config.Portrait.Enable = val; ns.UpdateFrames() end,
                 },
@@ -260,7 +260,7 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
             type = "group", name = "Buffs", order = 40,
             args = {
                 enable = {
-                    type = "toggle", name = "Enable", order = 1,
+                    type = "toggle", name = "Enable", order = 1, width = "full",
                     get = function() return config.Buffs.Enable end,
                     set = function(_, val) config.Buffs.Enable = val; ns.UpdateFrames() end,
                 },
@@ -290,7 +290,7 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
             type = "group", name = "Debuffs", order = 50,
             args = {
                 enable = {
-                    type = "toggle", name = "Enable", order = 1,
+                    type = "toggle", name = "Enable", order = 1, width = "full",
                     get = function() return config.Debuffs.Enable end,
                     set = function(_, val) config.Debuffs.Enable = val; ns.UpdateFrames() end,
                 },
@@ -349,7 +349,7 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
 
         if config.NameText then
             args.name.args.enable = {
-                type = "toggle", name = "Enable", order = 0,
+                type = "toggle", name = "Enable", order = 0, width = "full",
                 get = function() return config.NameText.Enable ~= false end,
                 set = function(_, val) config.NameText.Enable = val; ns.UpdateFrames() end,
             }
@@ -401,7 +401,7 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
             type = "group", name = "Cast Bar", order = 25,
             args = {
                 enable = {
-                    type = "toggle", name = "Enable", order = 0,
+                    type = "toggle", name = "Enable", order = 0, width = "full",
                     get = function() return getCbConfig().Enable end,
                     set = function(_, val) getCbConfig().Enable = val; ns.UpdateFrames() end,
                 },
@@ -500,6 +500,24 @@ local function CreateUnitGroup(key, name, order, hasCastbar, hasNameTag, xIndex,
             get = function() return config.ShowSolo end,
             set = function(_, val) config.ShowSolo = val; ns.UpdateFrames() end,
         }
+        args.general.args.autoFitGroups = {
+            name = "Auto Fit Groups",
+            desc = "Automatically fit the raid frame width based on the number of groups",
+            type = "select",
+            values = {
+                [4] = "4",
+                [5] = "5",
+                [6] = "6",
+                [7] = "7",
+                [8] = "8",
+            },
+            get = function()
+                return ns.Config.Units.Raid.AutoFitGroupNum or 8
+            end,
+            set = function(_, val)
+                ns.Config.Units.Raid.AutoFitGroupNum = val
+            end,
+        }
     end
 
     if key ~= "Pet" and key ~= "Raid" then
@@ -587,24 +605,6 @@ ns.SetupOptions = function()
                                     if not ns.Config.General.MinimapIcon then ns.Config.General.MinimapIcon = {} end
                                     ns.Config.General.MinimapIcon.hide = val
                                     if ns.UpdateMinimapButton then ns.UpdateMinimapButton() end
-                                end,
-                            },
-                            autoFitGroups = {
-                                name = "Auto Fit Groups",
-                                desc = "Automatically fit the raid frame width based on the number of groups",
-                                type = "select",
-                                values = {
-                                    [4] = "4",
-                                    [5] = "5",
-                                    [6] = "6",
-                                    [7] = "7",
-                                    [8] = "8",
-                                },
-                                get = function()
-                                    return ns.Config.Units.Raid.AutoFitGroupNum or 8
-                                end,
-                                set = function(_, val)
-                                    ns.Config.Units.Raid.AutoFitGroupNum = val
                                 end,
                             },
                         },
