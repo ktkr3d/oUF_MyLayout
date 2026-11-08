@@ -335,12 +335,6 @@ Loader:SetScript("OnEvent", function(self, event, addon)
     -- Get version info from TOC
     ns.Version = C_AddOns.GetAddOnMetadata(addonName, "Version")
 
-    -- Check dependency libraries
-    if not C_AddOns.IsAddOnLoaded("Ace3") or not C_AddOns.IsAddOnLoaded("LibSharedMedia-3.0") then
-        print("|cff00ff00oUF_MyLayout:|r |cffff0000Error:|r Required libraries (Ace3, LibSharedMedia-3.0, oUF) are missing or not enabled.")
-        return
-    end
-
     -- Initialize AceDB
     ns.Defaults = ns.Config -- Save reference to original defaults
     local defaults = {
